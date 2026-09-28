@@ -36,3 +36,8 @@ The app is an SAP CAP (Node.js) app with Fiori elements V4 UIs, deployed to an S
 - On trial, use about 256M memory per module. HANA Cloud trial stops every night and must be restarted before testing.
 - Mock CSVs should include at least 30 freight orders across several lanes. Some should already have a carrier, and those must be filtered out of the "to tender" list. A few should have no freight units, to cover the empty-facet case.
 - Ignore `blueprint-vms-ignore-this.md`. It is staged as deleted and is not part of this project.
+
+## Working with the user
+
+- **The user runs all development, test and deployment commands themselves, to learn.** This covers `npm`/`npx`/`node`, `cds` (init, add, import, watch, bind, deploy), `jest`, `mbt` and `cf`, and these are denied in `.claude/settings.json`. Give the exact command in a code block, say what it does and what output to look for, then wait for the user to paste the result. Other shell commands, such as read-only inspection (`ls`, `git status`, `git diff`), are fine to run.
+- **Keep all Claude memory and settings in this repo, never global.** Record durable preferences and project facts in this file (or `CLAUDE.local.md` for private, uncommitted notes), and settings in `.claude/settings.json` (shared) or `.claude/settings.local.json` (private). Do not write to `~/.claude/` or the global auto-memory directory.

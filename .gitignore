@@ -31,3 +31,7 @@ Thumbs.db
 .vscode/
 !.vscode/extensions.json
 .idea/
+
+# Claude Code — private, per-developer files (shared ones: CLAUDE.md, .claude/settings.json)
+CLAUDE.local.md
+.claude/settings.local.json
