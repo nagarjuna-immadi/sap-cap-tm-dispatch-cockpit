@@ -1,0 +1,96 @@
+### DispatchService walkthrough (development plan 1.4), as nag (Dispatcher)
+# Start `cds watch`, then run the requests top to bottom (VS Code REST Client).
+# Later requests reuse IDs from the named responses above them.
+
+@server = http://localhost:4004
+@dispatch = {{server}}/odata/v4/dispatch
+@auth = Basic nag:
+@order = 6100000002
+
+### List: freight orders still to tender (orders with a carrier are left out), one page
+GET {{dispatch}}/FreightOrders?$top=10&$count=true&$orderby=TransportationOrder
+  &$select=TransportationOrder,TransportationMode,sourceLocation,destinationLocation,pickupDateTime,dispatchStatus,bestQuote,bestQuoteCurrency,quoteCount,quoteDeadline,deadlineExpired
+Authorization: {{auth}}
+
+### List: filter on local fields (resolved locally, paging stays correct)
+GET {{dispatch}}/FreightOrders?$count=true&$filter=dispatchStatus eq 'TENDERING' or dispatchStatus eq 'AWARDED'
+Authorization: {{auth}}
+
+### List: orders whose open round is past its deadline
+GET {{dispatch}}/FreightOrders?$count=true&$filter=deadlineExpired eq true
+Authorization: {{auth}}
+
+### Open one order: creates its dispatch (NEW) on first open
+# @name openOrder
+GET {{dispatch}}/FreightOrders('{{order}}')?$expand=dispatch,freightUnits,_FreightOrderItem,_FreightOrderStop($expand=_FreightOrderStage)
+Authorization: {{auth}}
+
+### Freight units of the order (also: FreightOrders('…')/freightUnits)
+GET {{dispatch}}/FreightUnits?$filter=freightOrderId eq '{{order}}'
+Authorization: {{auth}}
+
+### Active carriers (value help)
+GET {{dispatch}}/Carriers?$select=carrierId,name,city
+Authorization: {{auth}}
+
+@dispatchKey = ID={{openOrder.response.body.dispatch.ID}},IsActiveEntity=true
+
+### Start tender: round n+1 with one INVITED offer per carrier. PEER can be awarded
+### before the deadline; with BROADCAST, award only after it has passed.
+POST {{dispatch}}/Dispatch({{dispatchKey}})/DispatchService.startTender
+Authorization: {{auth}}
+Content-Type: application/json
+
+{ "mode": "PEER", "deadline": "2099-12-31T12:00:00Z", "carriers": ["10300001", "10300002", "10300003"] }
+
+### Rounds and offers
+# @name rounds
+GET {{dispatch}}/Dispatch({{dispatchKey}})/rounds?$orderby=roundNumber desc&$expand=offers($select=ID,carrierId,carrierName,status_code,price,currency_code)
+Authorization: {{auth}}
+
+### Rule check: an INVITED offer cannot be awarded (expect 400 OFFER_NOT_QUOTED)
+POST {{dispatch}}/CarrierOffers(ID={{rounds.response.body.$.value[0].offers[0].ID}},IsActiveEntity=true)/DispatchService.award
+Authorization: {{auth}}
+Content-Type: application/json
+
+{}
+
+### (Enter a quote for the first offer: TenderService submitQuote, phase 3)
+
+### Award the quoted offer: WON, other quotes LOST, unanswered EXPIRED, round closed,
+### dispatch AWARDED with carrier, price, user and timestamp
+POST {{dispatch}}/CarrierOffers(ID={{rounds.response.body.$.value[0].offers[0].ID}},IsActiveEntity=true)/DispatchService.award
+Authorization: {{auth}}
+Content-Type: application/json
+
+{}
+
+### Close the open round: its INVITED offers become EXPIRED
+### (run after a start tender without award; expect 400 ROUND_CLOSED otherwise)
+POST {{dispatch}}/Dispatch({{dispatchKey}})/DispatchService.closeRound
+Authorization: {{auth}}
+Content-Type: application/json
+
+{}
+
+### Report an execution exception
+POST {{dispatch}}/Dispatch({{dispatchKey}})/DispatchService.reportException
+Authorization: {{auth}}
+Content-Type: application/json
+
+{ "type": "DELAY", "reason": "TRAFFIC", "minutes": 45 }
+
+### Cancel the tender: FAILED, closes an open round, adds a note (reason is mandatory)
+POST {{dispatch}}/Dispatch({{dispatchKey}})/DispatchService.cancelTender
+Authorization: {{auth}}
+Content-Type: application/json
+
+{ "reason": "Shipper postponed the pickup" }
+
+### The dispatch with rounds, offers, exceptions and notes
+GET {{dispatch}}/Dispatch({{dispatchKey}})?$expand=rounds($expand=offers),exceptions,notes
+Authorization: {{auth}}
+
+### satish (CarrierDesk) is refused (expect 403)
+GET {{dispatch}}/FreightOrders?$top=1
+Authorization: Basic satish:

@@ -184,9 +184,9 @@ Remote entities, imported from EDMX (exact names come from the metadata): `Freig
 | `FreightUnits` | Remote Freight Unit | Read-only facet: what is being moved |
 | `Carriers` (read-only) | Local `Carriers` | Value help, filtered to `active = true`. Remote Business Partner only on a real tenant (see section 2) |
 | action `startTender(mode, deadline, carriers[])` | Local | NEW → TENDERING; creates round *n+1* with one `INVITED` offer per carrier |
-| action `award(offerId)` | Local | **Rules:** the offer must be `QUOTED`; its round must be open; in `BROADCAST` mode the deadline must have passed. Sets the offer `WON`, siblings `LOST`, dispatch `AWARDED` with price, carrier, user and timestamp |
+| action `award(offerId)` | Local | **Rules:** the offer must be `QUOTED`; its round must be open; in `BROADCAST` mode the deadline must have passed. Sets the offer `WON`, quoted siblings `LOST`, unanswered (`INVITED`) siblings `EXPIRED`, closes the round, and sets the dispatch `AWARDED` with price, carrier, user and timestamp. Bound to the offer, so it appears on the offer row |
 | action `closeRound()` | Local | Closes the round and expires every offer still `INVITED` |
-| action `cancelTender(reason)` | Local | Any status → `FAILED`, with a mandatory note |
+| action `cancelTender(reason)` | Local | Any status → `FAILED`, with a mandatory note. Closes an open round, so carriers can no longer quote |
 | action `reportException(type, reason, minutes)` | Local | Appends an `ExecutionEvents` row |
 
 ### `TenderService` (`/odata/v4/tender`) – role `CarrierDesk`
@@ -205,7 +205,8 @@ Aggregated views: awards per carrier, average quotes per round, savings (first q
 
 ### Handler notes
 
-- Map OData query options (`$filter`, `$top`, `$skip`, `$orderby`) through to the remote service. Filters on local fields are applied after the remote rows are enriched.
+- Map OData query options (`$filter`, `$top`, `$skip`, `$orderby`) through to the remote service. Filters on local fields (`dispatchStatus`, `deadlineExpired`) are resolved locally first, into an `in` / `not in` filter on the freight order number, so paging stays correct (§12). Local fields cannot be sorted on.
+- Actions run on the saved (active) dispatch only, and are refused while the dispatch is open in a draft. Saving a draft never overwrites the status, award fields or rounds, which only actions change.
 - Read freight orders with an explicit `$select`. A full freight order with items, stages and locations is a heavy deep structure — expand stages only on the object page.
 - Batch the local enrichment: one `SELECT … WHERE freightOrderId IN (…)` per page, never one query per row.
 - Cache carriers and code lists in memory with a short TTL.
