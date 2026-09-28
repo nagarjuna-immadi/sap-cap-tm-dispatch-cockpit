@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-**Phase 0 is complete; phase 1 (core model and Dispatch service) is next**, starting with 1.1 `db/schema.cds`. The CAP project is scaffolded, the three TM services are imported into `srv/external/` with generated mock CSVs, and the mocked users are in `.cdsrc.json`. There is no `db` model, `srv` service, `app/` or `test/` yet.
+**Phase 1 (core model and Dispatch service) is in progress**: 1.1 `db/schema.cds` (with seed data) and 1.2 `srv/lib/award-rules.js` (with `test/award-rules.test.js`) are done, and 1.3 remote access helpers are next. The three TM services are imported into `srv/external/` with generated mock CSVs, and the mocked users are in `.cdsrc.json`. There is no `srv` service or `app/` yet.
 
 - `blueprint.md` is the design spec (the **what** and **why**) and the source of truth. Read the relevant section before implementing anything, and update it when a decision changes.
 - `development-plan.md` is the build plan (the **how** and **in which order**), with a checkbox per step. Tick items off as they are done. It also holds the **real TM entity and field names** table (under phase 0), which replaces the blueprint's placeholders.
@@ -45,7 +45,7 @@ The project is an ES module (`"type": "module"` in `package.json`), so use `impo
 - On trial, use about 256M memory per module. HANA Cloud trial stops every night and must be restarted before testing.
 - Mock CSVs must keep at least 30 freight orders across several lanes (currently 32 orders on 6 lanes). Some already have a carrier (7, with IDs from `10300001`–`10300012`, which must match the `Carriers` seed), and those must be filtered out of the "to tender" list. A few (3) have no freight units, to cover the empty-facet case. Change the data through `scripts/gen-mock-data.js`, not by hand-editing the CSVs.
 - In CSVs, CAP reads an empty cell as `NULL`, so a `not null` string that should be empty (such as an unassigned `Carrier`) is written as a quoted `""`.
-- Work in one branch per phase (`phase-1-core`, …), merged into `main` once the phase's exit criteria pass and `npm test` is green.
+- Development happens directly on `main` (the user's choice from phase 1 on); do not create or switch branches. Commit a phase as done only once its exit criteria pass and `npm test` is green.
 
 ## Working with the user
 
