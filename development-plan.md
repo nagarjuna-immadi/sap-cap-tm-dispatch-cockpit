@@ -26,9 +26,9 @@ For each of `API_FREIGHTORDER`, `API_FREIGHTUNIT` and `API_FREIGHTBOOKING`:
 - [ ] Update the "Hub sandbox" column in blueprint §2 with the result (Yes / Empty / No).
 
 ### 0.2 Scaffold the project
-- [ ] Run `cds init` in place, then add `@sap/cds`, `@cap-js/sqlite`, and (dev) `@cap-js/cds-test` and `jest`.
-- [ ] `package.json` scripts: `start`, `watch` (`cds watch`), `test` (`jest`).
-- [ ] Add `jest.config.js` (testEnvironment `node`, `testTimeout` about 20s).
+- [x] Run `cds init` in place, then add `@sap/cds`, `@cap-js/sqlite`, and (dev) `@cap-js/cds-test` and `jest`.
+- [x] `package.json` scripts: `start`, `watch` (`cds watch`), `test` (`jest`).
+- [x] Add `jest.config.js` (testEnvironment `node`, `testTimeout` about 20s).
 
 ### 0.3 Import the TM services
 - [ ] Run `cds import srv/external/API_FREIGHTORDER.edmx --as cds`, and the same for FREIGHTUNIT and FREIGHTBOOKING.
