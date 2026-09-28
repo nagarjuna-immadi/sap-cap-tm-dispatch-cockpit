@@ -26,9 +26,9 @@ Freight orders come out of TM planning with no carrier and no price. Quotes are 
 
 | API | Technical name | Use |
 |---|---|---|
-| Freight Order (A2X) | `API_FREIGHTORDER` | Main list and object page |
-| Freight Unit (A2X) | `API_FREIGHTUNIT` | What is on the truck |
-| Freight Booking (A2X) | `API_FREIGHTBOOKING` | Ocean and air leg context |
+| Freight Order (A2X) | `CE_FREIGHTORDER_0001` | Main list and object page |
+| Freight Unit (A2X) | `CE_FREIGHTUNIT_0001` | What is on the truck |
+| Freight Booking (A2X) | `CE_FREIGHTBOOKING_0001` | Ocean and air leg context |
 
 TM is **read-only** for this app. Everything the cockpit writes is stored in its own database (HANA Cloud on BTP, SQLite locally). Carrier master data is a local entity because `API_BUSINESS_PARTNER` has no Hub sandbox.
 

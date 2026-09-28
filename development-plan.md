@@ -18,7 +18,9 @@ This is the step-by-step build plan for `sap-cap-tm-dispatch-cockpit`. The **wha
 **Goal:** a CAP project that starts with mocked TM services and returns freight orders.
 
 ### 0.1 Verify the Hub APIs (manual)
-For each of `API_FREIGHTORDER`, `API_FREIGHTUNIT` and `API_FREIGHTBOOKING`:
+
+For each of `CE_FREIGHTORDER_0001`, `CE_FREIGHTUNIT_0001` and `CE_FREIGHTBOOKING_0001`:
+
 - [x] Confirm the state is ACTIVE on api.sap.com.
 - [x] Download the EDMX to `srv/external/<API>.edmx`.
 - [x] Note the exact service path (`/sap/opu/odata4/sap/.../0001/`).
@@ -26,16 +28,19 @@ For each of `API_FREIGHTORDER`, `API_FREIGHTUNIT` and `API_FREIGHTBOOKING`:
 - [x] Update the "Hub sandbox" column in blueprint §2 with the result (Yes / Empty / No).
 
 ### 0.2 Scaffold the project
+
 - [x] Run `cds init` in place, then add `@sap/cds`, `@cap-js/sqlite`, and (dev) `@cap-js/cds-test` and `jest`.
 - [x] `package.json` scripts: `start`, `watch` (`cds watch`), `test` (`jest`).
 - [x] Add `jest.config.js` (testEnvironment `node`, `testTimeout` about 20s).
 
 ### 0.3 Import the TM services
-- [ ] Run `cds import srv/external/API_FREIGHTORDER.edmx --as cds`, and the same for FREIGHTUNIT and FREIGHTBOOKING.
-- [ ] In `package.json` → `cds.requires`, add `TM_FREIGHT_ORDER`, `TM_FREIGHT_UNIT` and `TM_FREIGHT_BOOKING` (`kind: odata-v4`, `model: srv/external/<API>`). There are no credentials yet; the `[hybrid]` and `[production]` entries come in phase 4.
-- [ ] Write down the real entity set and key names for freight order, items, stages, freight unit and freight booking. Keep them in a short table in this file (below) for later phases.
+
+- [x] Run `cds import srv/external/CE_FREIGHTORDER_0001.edmx --as cds`, and the same for `CE_FREIGHTUNIT_0001` and `CE_FREIGHTBOOKING_0001`.
+- [x] In `package.json` → `cds.requires`, add `CE_FREIGHTORDER_0001`, `CE_FREIGHTUNIT_0001` and `CE_FREIGHTBOOKING_0001` (`kind: odata`, `model: srv/external/<API>`). There are no credentials yet; the `[hybrid]` and `[production]` entries come in phase 4.
+- [x] Write down the real entity set and key names for freight order, items, stages, freight unit and freight booking. Keep them in a short table in this file (below) for later phases.
 
 ### 0.4 Mock data (`srv/external/data/`)
+
 - [ ] At least **30 freight orders** across 4–6 lanes, with pick-up dates spread over the past week and the next 3 weeks.
 - [ ] About 20% of them already have a carrier. These must not appear in the "to tender" list.
 - [ ] Freight units for most orders, but **3 or more orders with none** (to cover the empty facet).
@@ -43,19 +48,30 @@ For each of `API_FREIGHTORDER`, `API_FREIGHTUNIT` and `API_FREIGHTBOOKING`:
 - [ ] CSV file names must match the imported namespace and entity (`<namespace>-<Entity>.csv`).
 
 ### 0.5 Local users
+
 - [ ] In `.cdsrc.json`, use `auth: mocked` with users `alice` (Dispatcher), `bob` (CarrierDesk) and `carol` (TransportManager).
 
 ### 0.6 Smoke test
+
 - [ ] Add `test/smoke.test.js`: it runs `cds.test` and reads the mocked freight orders through a temporary service, then checks that there are more than 30 rows.
 
 **Exit criteria:** `cds watch` serves mocked freight orders, `npx jest` passes, and blueprint §2 records sandbox availability.
 
 | Real TM names (fill in during 0.3) | Entity set | Key | Notes |
-|---|---|---|---|
-| Freight order | | | |
-| Freight order items / stages | | | |
-| Freight unit | | | |
-| Freight booking | | | |
+| --- | --- | --- | --- |
+| Freight order | `CE_FREIGHTORDER_0001.FreightOrder` | `TransportationOrderUUID` (UUID) | Readable number `TransportationOrder` (String 20) is our `freightOrderId`. Carrier: `Carrier` (String 10, `''` when unassigned, not null). Also `TransportationMode`, `TransportationOrderType`, `TranspOrdLifeCycleStatus` |
+| Freight order items | `FreightOrderItem` (via `_FreightOrderItem`) | `TransportationOrderItemUUID` | Parent `TransportationOrderUUID`. Weight and volume: `TranspOrdItemGrossWeight` / `…Unit`, `TranspOrdItemGrossVolume` / `…Unit`. Link to freight unit: `FreightUnitUUID` |
+| Freight order stops | `FreightOrderStop` (via `_FreightOrderStop`) | `TransportationOrderStopUUID` | Holds location and dates: `LocationId`, `TranspOrdStopRole`, `TranspOrdStopSequencePosition`, `TranspOrdStopPlanTranspDteTme`. Lane = first and last stop |
+| Freight order stages | `FreightOrderStage` (via `_FreightOrderStop/_FreightOrderStage`) | `TransportationOrderStageUUID` | Nested **under stops**, not under the header. `TranspOrdStageSrceStopUUID`, `TranspOrdStageDestStopUUID`, `TranspOrdStageDistance` |
+| Freight unit | `CE_FREIGHTUNIT_0001.FreightUnit` | `TransportationOrderUUID` (UUID) | Readable number `TransportationOrder`. **No freight order reference on the header**: find a freight order's units via `FreightOrderItem.FreightUnitUUID`. Weight and volume sit on `FreightUnitItem` |
+| Freight booking | `CE_FREIGHTBOOKING_0001.FreightBooking` | `TransportationOrderUUID` (UUID) | Readable number `TransportationOrder`, plus `Carrier`, `TransportationMode`, `MovementType`. Items/stops/stages follow the freight order pattern |
+
+**Consequences for later phases:**
+
+- "No carrier yet" is `Carrier eq ''`, not `Carrier eq null`.
+- Every TM object keys on a UUID. We store only the readable `TransportationOrder` in `FreightOrderDispatch.freightOrderId` (§4), and look up by it with `$filter`.
+- Source, destination and dates come from `_FreightOrderStop`, so the list read needs `$expand=_FreightOrderStop($select=…)`. That makes mock CSVs for stops mandatory in 0.4.
+- The freight units facet needs two steps: read `_FreightOrderItem` for `FreightUnitUUID`s, then read `FreightUnit` with an `in` filter.
 
 ---
 
@@ -64,6 +80,7 @@ For each of `API_FREIGHTORDER`, `API_FREIGHTUNIT` and `API_FREIGHTBOOKING`:
 **Goal:** the local domain model, a Dispatch service with remote read plus enrichment, and every tender and award rule covered by tests.
 
 ### 1.1 Domain model: `db/schema.cds`
+
 - [ ] Entities as in §4, namespace `tm.dispatch`: `FreightOrderDispatch`, `TenderRounds`, `CarrierOffers`, `ExecutionEvents`, `DispatchNotes`, `Carriers`, and the code lists.
 - [ ] Seed data in `db/data/`:
   - `tm.dispatch-Carriers.csv` with 12 carriers, BP-style IDs, and 1–2 set to `active=false`.
@@ -74,7 +91,9 @@ For each of `API_FREIGHTORDER`, `API_FREIGHTUNIT` and `API_FREIGHTBOOKING`:
 - [ ] Add a `_texts` / `name` column to the code lists so value helps show readable text.
 
 ### 1.2 Business rules: `srv/lib/award-rules.js` (pure, no CDS imports)
+
 Each function takes plain objects and a `now` value, and returns `{ ok: true }` or `{ ok: false, code, message }`:
+
 - [ ] `canStartTender(dispatch, { carriers, deadline, now })`: status is NEW or TENDERING, no other round is open, the deadline is in the future, and there is at least one carrier with no duplicates.
 - [ ] `canAward({ dispatch, round, offer, now })`: the offer is QUOTED, the round is not closed, the dispatch is not already AWARDED, and in BROADCAST mode `now >= round.deadline`.
 - [ ] `canSubmitQuote({ offer, round, now })`: the offer is INVITED, the round is open, `now < deadline`, the price is greater than 0, and transit hours are greater than 0.
@@ -85,11 +104,13 @@ Each function takes plain objects and a `now` value, and returns `{ ok: true }` 
 - [ ] `test/award-rules.test.js`: one `describe` block per function, covering every branch, including the boundary where `now` equals the deadline.
 
 ### 1.3 Remote access helpers: `srv/lib/`
-- [ ] `tm-client.js`: connects once to `TM_FREIGHT_ORDER` and `TM_FREIGHT_UNIT`, builds queries with an explicit `$select`, and passes `$filter`, `$top`, `$skip` and `$orderby` through from `req.query`.
+
+- [ ] `tm-client.js`: connects once to `CE_FREIGHTORDER_0001` and `CE_FREIGHTUNIT_0001`, builds queries with an explicit `$select`, and passes `$filter`, `$top`, `$skip` and `$orderby` through from `req.query`.
 - [ ] `enrich.js`: for one page of freight orders, runs **one** `SELECT … WHERE freightOrderId IN (…)` for dispatches, plus one aggregate query over rounds and offers for best quote, quote count and current deadline. It merges the results in memory. A missing dispatch reads as NEW.
 - [ ] `cache.js`: a small TTL cache (about 5 minutes) for carriers and code lists.
 
 ### 1.4 `srv/dispatch-service.cds` + `.js`: `@requires: 'Dispatcher'`
+
 - [ ] `FreightOrders`: read-only projection on the remote freight order, with virtual elements `dispatchStatus`, `bestQuote`, `quoteCount`, `quoteDeadline` and `deadlineExpired`. It excludes orders that already have a carrier. The `READ` handler delegates to `tm-client` and then calls `enrich`.
 - [ ] Filters on local fields (`dispatchStatus`, `deadlineExpired`): first pre-select the matching freight order IDs locally, then pass them to TM as an `in` filter, so paging stays correct (§12).
 - [ ] Single-entity read of a freight order: **lazily upsert** the `FreightOrderDispatch` record (status NEW).
@@ -159,17 +180,20 @@ Each function takes plain objects and a `now` value, and returns `{ ok: true }` 
 **Goal:** the apps run on BTP trial against the real sandbox for every TM API that has one.
 
 ### 4.1 Hybrid
-- [ ] Put `[hybrid]` credentials in `package.json` for each TM API that phase 0 marked "Yes": the sandbox base URL plus the path. The `APIKey` header comes from a git-ignored `.env` (`cds.requires.TM_FREIGHT_ORDER.credentials.headers.APIKey=…`), or from `cds bind` to the destination.
+
+- [ ] Put `[hybrid]` credentials in `package.json` for each TM API that phase 0 marked "Yes": the sandbox base URL plus the path. The `APIKey` header comes from a git-ignored `.env` (`cds.requires.CE_FREIGHTORDER_0001.credentials.headers.APIKey=…`), or from `cds bind` to the destination.
 - [ ] Run `cds watch --profile hybrid`. Compare real payloads with the mocks, then fix field mappings, `$select` lists and date and time zone handling.
 - [ ] Check the payload size and speed with `$top=50`. Stages and items are only expanded on the object page.
 
 ### 4.2 Production configuration
+
 - [ ] Run `cds add hana`, then `cds add mta xsuaa destination html5-repo approuter`.
 - [ ] Add `[production]` credentials for each available TM API: `destination: S4_SANDBOX` plus the path (§9). APIs without a working sandbox are **not** remote dependencies in production; handle them as §12 describes.
 - [ ] In `mta.yaml`, set about 256M memory per module. The `tm-dispatch-destination` resource only binds the destination service and does **not** define `S4_SANDBOX`.
 - [ ] Set up `app/router/xs-app.json` routes for the two OData services and the HTML5 repo.
 
 ### 4.3 Deploy
+
 - [ ] In the BTP cockpit, create `S4_SANDBOX` manually and start HANA Cloud.
 - [ ] Run `mbt build`, `cf login`, then `cf deploy mta_archives/sap-cap-tm-dispatch-cockpit_1.0.0.mtar`.
 - [ ] Assign the role collections, then smoke-test both apps with two different users.
@@ -188,7 +212,7 @@ Each function takes plain objects and a `now` value, and returns `{ ok: true }` 
   - average award lead time
 - [ ] **App 3, Carrier Scorecard** (ALP or OVP): KPI cards and charts as in §7.
 - [ ] **Work Zone** launchpad with the three apps.
-- [ ] **Writeback** of the awarded carrier to `API_FREIGHTORDER`, behind the profile flag `cds.requires.tm-writeback` (off by default). Refuse writeback when the URL matches `sandbox.api.sap.com`. Only use it on a real tenant.
+- [ ] **Writeback** of the awarded carrier to `CE_FREIGHTORDER_0001`, behind the profile flag `cds.requires.tm-writeback` (off by default). Refuse writeback when the URL matches `sandbox.api.sap.com`. Only use it on a real tenant.
 - [ ] **Remote Business Partner** for carrier value help, behind a profile flag. `CarrierOffers` stays unchanged.
 
 ---
@@ -196,7 +220,7 @@ Each function takes plain objects and a `now` value, and returns `{ ok: true }` 
 ## Test strategy summary
 
 | Layer | Tool | Location | Covers |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Rules | jest | `test/award-rules.test.js` | Every branch of `srv/lib/award-rules.js`, with an injected `now` |
 | Services | jest + `cds.test` | `test/*-service.test.js` | HTTP-level behaviour, enrichment, transactions, authorization |
 | Manual | REST Client | `test/http/*.http` | Ad-hoc flows during UI work |
@@ -207,7 +231,7 @@ Run all tests with `npx jest`. Run a single test with `npx jest test/<file>.test
 ## Open decisions
 
 | # | Decision | Decide in |
-|---|---|---|
-| 1 | Behaviour if `API_FREIGHTORDER` has no usable sandbox data (keep mocks on BTP, or use seed data) | Phase 0.1 |
+| --- | --- | --- |
+| 1 | Behaviour if `CE_FREIGHTORDER_0001` has no usable sandbox data (keep mocks on BTP, or use seed data) | Phase 0.1 |
 | 2 | Collection parameter vs. `inviteCarriers` fallback for `startTender` | Phase 2 |
 | 3 | Whether `closeRound` should also run automatically when a BROADCAST deadline passes and all offers have responded | Phase 1 |

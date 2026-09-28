@@ -40,17 +40,17 @@ All of these are **A2X** services of SAP S/4HANA Cloud Public Edition, published
 
 | # | API (Business Accelerator Hub) | Technical name | Protocol | Hub sandbox | Use in the app |
 |---|---|---|---|---|---|
-| 1 | **Freight Order (A2X)** | `API_FREIGHTORDER` | OData V4 | Yes | Main list: freight order, stages, source/destination, dates, carrier (usually empty), status |
-| 2 | **Freight Unit (A2X)** | `API_FREIGHTUNIT` | OData V4 | Yes | What is actually on the truck — items, weight, volume; object-page facet and the basis for a quote |
-| 3 | **Freight Booking (A2X)** | `API_FREIGHTBOOKING` | OData V4 | Yes | Ocean/air legs that a pick-up or delivery freight order belongs to; shown as context |
+| 1 | **Freight Order (A2X)** | `CE_FREIGHTORDER_0001` | OData V4 | Yes | Main list: freight order, stages, source/destination, dates, carrier (usually empty), status |
+| 2 | **Freight Unit (A2X)** | `CE_FREIGHTUNIT_0001` | OData V4 | Yes | What is actually on the truck — items, weight, volume; object-page facet and the basis for a quote |
+| 3 | **Freight Booking (A2X)** | `CE_FREIGHTBOOKING_0001` | OData V4 | Yes | Ocean/air legs that a pick-up or delivery freight order belongs to; shown as context |
 
 **Verified service paths** (sandbox base `https://sandbox.api.sap.com/s4hanacloud`, all returned rows in *Try Out*):
 
 | Technical name | Service path |
 |---|---|
-| `API_FREIGHTORDER` | `/sap/opu/odata4/sap/api_freightorder/srvd_a2x/sap/freightorder/0001` |
-| `API_FREIGHTUNIT` | `/sap/opu/odata4/sap/api_freightunit/srvd_a2x/sap/freightunit/0001` |
-| `API_FREIGHTBOOKING` | `/sap/opu/odata4/sap/api_freightbooking/srvd_a2x/sap/freightbooking/0001` |
+| `CE_FREIGHTORDER_0001` | `/sap/opu/odata4/sap/api_freightorder/srvd_a2x/sap/freightorder/0001` |
+| `CE_FREIGHTUNIT_0001` | `/sap/opu/odata4/sap/api_freightunit/srvd_a2x/sap/freightunit/0001` |
+| `CE_FREIGHTBOOKING_0001` | `/sap/opu/odata4/sap/api_freightbooking/srvd_a2x/sap/freightbooking/0001` |
 
 **Carrier master data:** `API_BUSINESS_PARTNER` has no Hub sandbox, so carriers are a **local `Carriers` entity** (section 4), seeded from CSV. It drives the carrier value help and the name/address snapshot on offers. A remote Business Partner read can be added later behind a profile flag for a real tenant.
 
@@ -293,13 +293,13 @@ Additional properties:
   HTML5.DynamicDestination = true   (only if the UI needs direct access)
 ```
 
-In `package.json` → `cds.requires`, point each `TM_*` service at `destination: S4_SANDBOX` and its API-specific `path`:
+In `package.json` → `cds.requires`, point each `CE_FREIGHT*_0001` service at `destination: S4_SANDBOX` and its API-specific `path`:
 
 ```json
 "cds": { "requires": {
-  "TM_FREIGHT_ORDER": {
-    "kind": "odata-v4",
-    "model": "srv/external/API_FREIGHTORDER",
+  "CE_FREIGHTORDER_0001": {
+    "kind": "odata",
+    "model": "srv/external/CE_FREIGHTORDER_0001",
     "[production]": {
       "credentials": {
         "destination": "S4_SANDBOX",
@@ -371,18 +371,18 @@ sap-cap-tm-dispatch-cockpit/
 | **2 – Fiori App 1** | Dispatch Cockpit LROP with tender rounds and actions | Full tender → quote → award flow works locally |
 | **3 – Tender Desk + App 2** | `TenderService`, restricted roles, quote and decline | A quote entered as `bob` shows up for `alice` and can be awarded |
 | **4 – Hybrid & deploy** | Destination, `cds bind`, MTA, xsuaa roles, deploy to trial | Apps run on BTP against the real sandbox for every TM API that has one |
-| **5 – Extras (optional, real tenant)** | App 3 analytics, Work Zone launchpad, **writeback of the awarded carrier to `API_FREIGHTORDER`**, remote Business Partner for carriers | — |
+| **5 – Extras (optional, real tenant)** | App 3 analytics, Work Zone launchpad, **writeback of the awarded carrier to `CE_FREIGHTORDER_0001`**, remote Business Partner for carriers | — |
 
 ---
 
 ## 12. Risks & open points
 
 - **Edition:** the TM OData APIs exist for S/4HANA Cloud **Public Edition** only (KBA 3703361). Keep the remote layer isolated in `srv/external/` so it can be replaced.
-- **Sandbox coverage:** `API_BUSINESS_PARTNER` has **no Hub sandbox** and is replaced by local carriers (section 2). The TM APIs may still have thin or empty sandbox data. For local runs, keep such an API on the mock profile. If `API_FREIGHTORDER` itself has no working sandbox, the phase-4 goal becomes "deployed to BTP against mocks/seed data" until a real tenant is available.
+- **Sandbox coverage:** `API_BUSINESS_PARTNER` has **no Hub sandbox** and is replaced by local carriers (section 2). The TM APIs may still have thin or empty sandbox data. For local runs, keep such an API on the mock profile. If `CE_FREIGHTORDER_0001` itself has no working sandbox, the phase-4 goal becomes "deployed to BTP against mocks/seed data" until a real tenant is available.
 - **Entity and field names:** sections 4 and 5 use readable placeholders. Confirm all of them against each EDMX after `cds import`; the real A2X names are verbose and the freight order is deeply nested (items, stages, locations, party roles).
 - **Payload size:** a freight order expanded over stages and items is large. Always `$select`, expand only on the object page, and test with `$top=50`.
 - **Remote filtering and paging:** combining remote rows with local filters breaks paging. Keep local-only filters simple, or preload the dispatch keys for the current filter first.
 - **Deadlines and time zones:** store every timestamp in UTC and render in user time. Expiry must be evaluated server-side, never in the UI.
 - **Sandbox rate limits:** cache carriers and code lists; never call the API once per row.
-- **Writeback (phase 5):** `API_FREIGHTORDER` is a genuine write API. Never point it at the sandbox, and guard it with a profile flag so a misconfigured environment cannot post into a shared tenant.
+- **Writeback (phase 5):** `CE_FREIGHTORDER_0001` is a genuine write API. Never point it at the sandbox, and guard it with a profile flag so a misconfigured environment cannot post into a shared tenant.
 - **Trial expiry:** trial accounts expire or need extending. Keep the MTA reproducible.
