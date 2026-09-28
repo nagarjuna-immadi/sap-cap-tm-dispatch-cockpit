@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@sap/cds": "^10.1.1"
+    "@sap/cds": "^10.1.1",
+    "@sap-cloud-sdk/connectivity": "^4",
+    "@sap-cloud-sdk/http-client": "^4",
+    "@sap-cloud-sdk/resilience": "^4"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1.0.2",
@@ -15,5 +18,21 @@
     "watch": "cds watch",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
-  "private": true
+  "private": true,
+  "cds": {
+    "requires": {
+      "CE_FREIGHTBOOKING_0001": {
+        "kind": "odata",
+        "model": "srv/external/CE_FREIGHTBOOKING_0001"
+      },
+      "CE_FREIGHTORDER_0001": {
+        "kind": "odata",
+        "model": "srv/external/CE_FREIGHTORDER_0001"
+      },
+      "CE_FREIGHTUNIT_0001": {
+        "kind": "odata",
+        "model": "srv/external/CE_FREIGHTUNIT_0001"
+      }
+    }
+  }
 }
