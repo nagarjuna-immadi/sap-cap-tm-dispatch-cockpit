@@ -19,11 +19,11 @@ This is the step-by-step build plan for `sap-cap-tm-dispatch-cockpit`. The **wha
 
 ### 0.1 Verify the Hub APIs (manual)
 For each of `API_FREIGHTORDER`, `API_FREIGHTUNIT` and `API_FREIGHTBOOKING`:
-- [ ] Confirm the state is ACTIVE on api.sap.com.
-- [ ] Download the EDMX to `srv/external/<API>.edmx`.
-- [ ] Note the exact service path (`/sap/opu/odata4/sap/.../0001/`).
-- [ ] Run **Try Out** and record whether it returns rows.
-- [ ] Update the "Hub sandbox" column in blueprint §2 with the result (Yes / Empty / No).
+- [x] Confirm the state is ACTIVE on api.sap.com.
+- [x] Download the EDMX to `srv/external/<API>.edmx`.
+- [x] Note the exact service path (`/sap/opu/odata4/sap/.../0001/`).
+- [x] Run **Try Out** and record whether it returns rows.
+- [x] Update the "Hub sandbox" column in blueprint §2 with the result (Yes / Empty / No).
 
 ### 0.2 Scaffold the project
 - [x] Run `cds init` in place, then add `@sap/cds`, `@cap-js/sqlite`, and (dev) `@cap-js/cds-test` and `jest`.

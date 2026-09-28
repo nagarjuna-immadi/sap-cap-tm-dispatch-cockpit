@@ -40,9 +40,17 @@ All of these are **A2X** services of SAP S/4HANA Cloud Public Edition, published
 
 | # | API (Business Accelerator Hub) | Technical name | Protocol | Hub sandbox | Use in the app |
 |---|---|---|---|---|---|
-| 1 | **Freight Order (A2X)** | `API_FREIGHTORDER` | OData V4 | To verify | Main list: freight order, stages, source/destination, dates, carrier (usually empty), status |
-| 2 | **Freight Unit (A2X)** | `API_FREIGHTUNIT` | OData V4 | To verify | What is actually on the truck — items, weight, volume; object-page facet and the basis for a quote |
-| 3 | **Freight Booking (A2X)** | `API_FREIGHTBOOKING` | OData V4 | To verify | Ocean/air legs that a pick-up or delivery freight order belongs to; shown as context |
+| 1 | **Freight Order (A2X)** | `API_FREIGHTORDER` | OData V4 | Yes | Main list: freight order, stages, source/destination, dates, carrier (usually empty), status |
+| 2 | **Freight Unit (A2X)** | `API_FREIGHTUNIT` | OData V4 | Yes | What is actually on the truck — items, weight, volume; object-page facet and the basis for a quote |
+| 3 | **Freight Booking (A2X)** | `API_FREIGHTBOOKING` | OData V4 | Yes | Ocean/air legs that a pick-up or delivery freight order belongs to; shown as context |
+
+**Verified service paths** (sandbox base `https://sandbox.api.sap.com/s4hanacloud`, all returned rows in *Try Out*):
+
+| Technical name | Service path |
+|---|---|
+| `API_FREIGHTORDER` | `/sap/opu/odata4/sap/api_freightorder/srvd_a2x/sap/freightorder/0001` |
+| `API_FREIGHTUNIT` | `/sap/opu/odata4/sap/api_freightunit/srvd_a2x/sap/freightunit/0001` |
+| `API_FREIGHTBOOKING` | `/sap/opu/odata4/sap/api_freightbooking/srvd_a2x/sap/freightbooking/0001` |
 
 **Carrier master data:** `API_BUSINESS_PARTNER` has no Hub sandbox, so carriers are a **local `Carriers` entity** (section 4), seeded from CSV. It drives the carrier value help and the name/address snapshot on offers. A remote Business Partner read can be added later behind a profile flag for a real tenant.
 
@@ -295,7 +303,7 @@ In `package.json` → `cds.requires`, point each `TM_*` service at `destination:
     "[production]": {
       "credentials": {
         "destination": "S4_SANDBOX",
-        "path": "/sap/opu/odata4/sap/<service path from Hub>"
+        "path": "/sap/opu/odata4/sap/api_freightorder/srvd_a2x/sap/freightorder/0001"
       }
     }
   }
