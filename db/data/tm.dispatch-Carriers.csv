@@ -1,0 +1,13 @@
+carrierId,name,street,postalCode,city,country,email,active
+10300001,Rhein Logistik GmbH,Hafenstrasse 12,68159,Mannheim,DE,dispatch@rhein-logistik.example,true
+10300002,Alpine Freight AG,Industriestrasse 4,8604,Volketswil,CH,tender@alpine-freight.example,true
+10300003,Nordsee Spedition GmbH,Am Kaiserkai 30,20457,Hamburg,DE,offers@nordsee-spedition.example,true
+10300004,Danube Transport Kft.,Vaci ut 88,1133,Budapest,HU,quotes@danube-transport.example,true
+10300005,Iberia Cargo S.L.,Calle de Alcala 210,28028,Madrid,ES,cargo@iberia-cargo.example,true
+10300006,Benelux Road Freight B.V.,Waalhaven Zuidzijde 21,3089 JH,Rotterdam,NL,planning@benelux-road.example,true
+10300007,Polska Trans Sp. z o.o.,ul. Logistyczna 5,05-850,Ozarow Mazowiecki,PL,biuro@polska-trans.example,true
+10300008,Lyon Express Transports SAS,12 Rue du Port Edouard Herriot,69007,Lyon,FR,devis@lyon-express.example,true
+10300009,Baltic Line Logistics UAB,Savanoriu pr. 178,03154,Vilnius,LT,sales@baltic-line.example,true
+10300010,Tirol Haulage GmbH,Grabenweg 68,6020,Innsbruck,AT,office@tirol-haulage.example,false
+10300011,Nordic Carriers AB,Frihamnen 14,41755,Goteborg,SE,booking@nordic-carriers.example,true
+10300012,Adriatic Shipping d.o.o.,Obala Kneza Branimira 2,21000,Split,HR,info@adriatic-shipping.example,false

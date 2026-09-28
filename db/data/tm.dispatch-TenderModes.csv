@@ -1,0 +1,4 @@
+code,name,descr
+BROADCAST,Broadcast,All invited carriers quote until the deadline; award only after it passes
+PEER,Peer-to-peer,Carriers are invited one at a time
+SPOT,Spot,Ad-hoc spot quote for a single shipment

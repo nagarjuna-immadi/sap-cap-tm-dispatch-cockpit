@@ -1,0 +1,5 @@
+code,name,descr
+PICKED_UP,Picked up,Goods picked up at the source location
+DELIVERED,Delivered,Goods delivered at the destination
+DELAY,Delay,Shipment is delayed
+DAMAGE,Damage,Goods damaged in transit

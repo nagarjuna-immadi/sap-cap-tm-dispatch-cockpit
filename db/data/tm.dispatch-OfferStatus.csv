@@ -1,0 +1,7 @@
+code,name,descr,criticality
+INVITED,Invited,Carrier invited; waiting for a quote,2
+QUOTED,Quoted,Carrier submitted a price and transit time,3
+DECLINED,Declined,Carrier declined the invitation,1
+EXPIRED,Expired,Deadline passed without a quote,1
+WON,Won,Offer was awarded,3
+LOST,Lost,Another offer was awarded,0

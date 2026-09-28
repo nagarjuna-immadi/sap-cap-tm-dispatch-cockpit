@@ -1,0 +1,6 @@
+code,name,descr,criticality
+NEW,New,Freight order opened; no tender started yet,0
+TENDERING,Tendering,A tender round is open and carriers are quoting,2
+AWARDED,Awarded,A carrier offer has been awarded,3
+FAILED,Failed,No acceptable offer; tender failed or was cancelled,1
+CLOSED,Closed,Dispatch completed and closed,0

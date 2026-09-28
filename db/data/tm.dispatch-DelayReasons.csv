@@ -1,0 +1,6 @@
+code,name,descr
+TRAFFIC,Traffic,Congestion or road closure
+WEATHER,Weather,Adverse weather conditions
+CARRIER,Carrier,Caused by the carrier (vehicle or driver)
+SHIPPER,Shipper,Goods not ready at pickup
+CUSTOMS,Customs,Held at customs clearance

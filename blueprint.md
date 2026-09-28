@@ -96,8 +96,9 @@ Local entities, namespace `tm.dispatch`:
 ```cds
 using { cuid, managed, Currency, sap.common.CodeList } from '@sap/cds/common';
 
+@assert.unique: { freightOrderId: [freightOrderId] }
 entity FreightOrderDispatch : cuid, managed {
-  freightOrderId  : String(20)  @assert.unique;     // key from TM
+  freightOrderId  : String(20) not null;            // key from TM
   dispatchStatus  : Association to DispatchStatus;  // NEW | TENDERING | AWARDED | FAILED | CLOSED
   awardedCarrier  : String(10);                     // BP number of the winner
   awardedPrice    : Decimal(15,2);
