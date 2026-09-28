@@ -1,16 +1,3 @@
 {
-  "permissions": {
-    "deny": [
-      "Bash(npm *)",
-      "Bash(npx *)",
-      "Bash(node *)",
-      "Bash(yarn *)",
-      "Bash(pnpm *)",
-      "Bash(cds *)",
-      "Bash(cds-ts *)",
-      "Bash(jest *)",
-      "Bash(mbt *)",
-      "Bash(cf *)"
-    ]
-  }
+  "permissions": {}
 }

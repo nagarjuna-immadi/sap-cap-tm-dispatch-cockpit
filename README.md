@@ -55,9 +55,9 @@ Local mock users (defined in `.cdsrc.json`):
 
 | User | Role |
 |---|---|
-| `alice` | Dispatcher |
-| `bob` | CarrierDesk |
-| `carol` | TransportManager |
+| `nag` | Dispatcher |
+| `satish` | CarrierDesk |
+| `srini` | TransportManager |
 
 ### Against the real Hub sandbox (hybrid)
 

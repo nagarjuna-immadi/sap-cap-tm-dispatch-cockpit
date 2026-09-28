@@ -1,0 +1,14 @@
+{
+  "[development]": {
+    "requires": {
+      "auth": {
+        "kind": "mocked",
+        "users": {
+          "nag":    { "roles": ["Dispatcher"] },
+          "satish": { "roles": ["CarrierDesk"] },
+          "srini":  { "roles": ["TransportManager"] }
+        }
+      }
+    }
+  }
+}

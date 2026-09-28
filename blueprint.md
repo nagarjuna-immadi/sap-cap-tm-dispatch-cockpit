@@ -266,7 +266,7 @@ Annotations go in `app/<app>/annotations.cds`, shared value helps in `srv/common
 | `TM_Carrier_Desk` | CarrierDesk | `$XSAPPNAME.CarrierDesk` |
 | `TM_Transport_Manager` | TransportManager | `$XSAPPNAME.TransportManager` |
 
-Use `@requires` / `@restrict` on the services and actions — `award` is `Dispatcher` only, `submitQuote` is `CarrierDesk` only. Locally, add mock users in `.cdsrc.json` (`alice` = dispatcher, `bob` = carrier desk, `carol` = transport manager).
+Use `@requires` / `@restrict` on the services and actions — `award` is `Dispatcher` only, `submitQuote` is `CarrierDesk` only. Locally, add mock users in `.cdsrc.json` (`nag` = dispatcher, `satish` = carrier desk, `srini` = transport manager).
 
 ---
 
@@ -369,7 +369,7 @@ sap-cap-tm-dispatch-cockpit/
 | **0 – Setup** | `cds init`, Hub API key, EDMX downloads, `cds import` × 3 (freight order, freight unit, freight booking), carrier seed CSV, Try Out check per API | `cds watch` starts with mocked TM services and returns freight orders; sandbox availability of the three TM APIs is recorded in section 2 |
 | **1 – Core model & Dispatch service** | Local schema, `DispatchService` with remote read and enrichment, `startTender` and `award` with their rules | `cds.test` covers every award rule on mock data |
 | **2 – Fiori App 1** | Dispatch Cockpit LROP with tender rounds and actions | Full tender → quote → award flow works locally |
-| **3 – Tender Desk + App 2** | `TenderService`, restricted roles, quote and decline | A quote entered as `bob` shows up for `alice` and can be awarded |
+| **3 – Tender Desk + App 2** | `TenderService`, restricted roles, quote and decline | A quote entered as `satish` shows up for `nag` and can be awarded |
 | **4 – Hybrid & deploy** | Destination, `cds bind`, MTA, xsuaa roles, deploy to trial | Apps run on BTP against the real sandbox for every TM API that has one |
 | **5 – Extras (optional, real tenant)** | App 3 analytics, Work Zone launchpad, **writeback of the awarded carrier to `CE_FREIGHTORDER_0001`**, remote Business Partner for carriers | — |
 

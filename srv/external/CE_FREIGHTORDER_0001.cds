@@ -432,7 +432,7 @@ service CE_FREIGHTORDER_0001 {
       TransportationOrderType : String(4) not null,
       @Common.IsUpperCase : true
       @Common.Label : 'Document'
-      TransportationOrder : String(20) not null default null
+      TransportationOrder : String(20) not null
     ) returns FreightOrder not null;
     action SendToCarrier();
     action ChangeLocationSequence(

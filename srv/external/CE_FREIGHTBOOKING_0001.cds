@@ -369,7 +369,7 @@ service CE_FREIGHTBOOKING_0001 {
       TransportationOrderType : String(4) not null,
       @Common.IsUpperCase : true
       @Common.Label : 'Document'
-      TransportationOrder : String(20) not null default null
+      TransportationOrder : String(20) not null
     ) returns FreightBooking not null;
     action SendShippingNotification();
     action CancelFreightBooking();
