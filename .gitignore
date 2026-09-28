@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# CAP / CDS build output
+gen/
+*.db
+*.sqlite
+*.csn.json
+.cdsrc-private.json
+
+# Secrets — never commit the Hub API key
+.env
+.env.*
+default-env.json
+*-key.json
+
+# MTA build
+mta_archives/
+.*_mta_build_tmp/
+resources/
+
+# Fiori / UI5 build
+app/**/dist/
+app/**/webapp/test/flpSandbox*.html.bak
+
+# Logs & OS/editor noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+.idea/
