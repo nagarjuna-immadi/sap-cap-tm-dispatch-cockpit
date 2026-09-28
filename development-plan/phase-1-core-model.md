@@ -2,7 +2,7 @@
 
 [← Development plan](README.md) · Previous: [Phase 0](phase-0-setup.md) · Next: [Phase 2](phase-2-dispatch-cockpit.md)
 
-**Goal:** the local domain model, a Dispatch service with remote read plus enrichment, and every tender and award rule covered by tests.
+**Goal:** the local domain model, a Dispatch service with remote read plus enrichment, and the tender and award rules enforced on every action.
 
 ## 1.1 Domain model: `db/schema.cds`
 
@@ -30,9 +30,9 @@ Each function takes plain objects and a `now` value, and returns `{ ok: true }` 
 
 ## 1.3 Remote access helpers: `srv/lib/`
 
-- [ ] `tm-client.js`: connects once to `CE_FREIGHTORDER_0001` and `CE_FREIGHTUNIT_0001`, builds queries with an explicit `$select`, and passes `$filter`, `$top`, `$skip` and `$orderby` through from `req.query`.
-- [ ] `enrich.js`: for one page of freight orders, runs **one** `SELECT … WHERE freightOrderId IN (…)` for dispatches, plus one aggregate query over rounds and offers for best quote, quote count and current deadline. It merges the results in memory. A missing dispatch reads as NEW.
-- [ ] `cache.js`: a small TTL cache (about 5 minutes) for carriers and code lists.
+- [x] `tm-client.js`: connects once to `CE_FREIGHTORDER_0001` and `CE_FREIGHTUNIT_0001`, builds queries with an explicit `$select`, and passes `$filter`, `$top`, `$skip` and `$orderby` through from `req.query`.
+- [x] `enrich.js`: for one page of freight orders, runs **one** `SELECT … WHERE freightOrderId IN (…)` for dispatches, plus one aggregate query over rounds and offers for best quote, quote count and current deadline. It merges the results in memory. A missing dispatch reads as NEW.
+- [x] `cache.js`: a small TTL cache (about 5 minutes) for carriers and code lists.
 
 ## 1.4 `srv/dispatch-service.cds` + `.js`: `@requires: 'Dispatcher'`
 
@@ -48,13 +48,6 @@ Each function takes plain objects and a `now` value, and returns `{ ok: true }` 
   - `closeRound()` on Dispatch: closes the open round and sets its INVITED offers to EXPIRED.
   - `cancelTender(reason)`: sets status to FAILED and adds a `DispatchNotes` entry.
   - `reportException(type, reason, minutes)`: adds an `ExecutionEvents` row.
-- [ ] `test/dispatch-service.test.js` (`cds.test`, logged in as nag):
-  - the list excludes orders that already have a carrier
-  - enrichment values are correct, and enrichment runs in a single local query (spy on `cds.db.run`)
-  - lazy creation of the dispatch record
-  - every rule in 1.2 through the HTTP layer
-  - the full award transaction
-  - `closeRound` expiry
-  - `cancelTender` with no reason is rejected
+- [ ] `test/http/dispatch.http` (REST Client, as nag): list, open one order, start tender, award, close round, cancel tender.
 
-**Exit criteria:** every award rule is covered by `cds.test`, and the full tender → (quote inserted in test) → award flow passes.
+**Exit criteria:** under `cds watch`, the list excludes orders that already have a carrier and shows the enrichment values, and the full tender → (quote entered via `.http`) → award flow works.

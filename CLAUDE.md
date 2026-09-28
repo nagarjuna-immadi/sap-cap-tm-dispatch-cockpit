@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-**Phase 1 (core model and Dispatch service) is in progress**: 1.1 `db/schema.cds` (with seed data) and 1.2 `srv/lib/award-rules.js` (with `test/award-rules.test.js`) are done, and 1.3 remote access helpers are next. The three TM services are imported into `srv/external/` with generated mock CSVs, and the mocked users are in `.cdsrc.json`. There is no `srv` service or `app/` yet.
+**Phase 1 (core model and Dispatch service) is in progress**: 1.1 `db/schema.cds` (with seed data) and 1.2 `srv/lib/award-rules.js` (with `test/award-rules.test.js`) and 1.3 remote access helpers (`tm-client.js`, `enrich.js`, `cache.js`) are done, and 1.4 `DispatchService` is next. The three TM services are imported into `srv/external/` with generated mock CSVs, and the mocked users are in `.cdsrc.json`. There is no `srv` service or `app/` yet.
 
 - `blueprint.md` is the design spec (the **what** and **why**) and the source of truth. Read the relevant section before implementing anything, and update it when a decision changes.
 - `development-plan/` is the build plan (the **how** and **in which order**), with one file per phase (`phase-0-setup.md` … `phase-5-extras.md`) and a checkbox per step. Tick items off in the phase file as they are done. `development-plan/README.md` holds the phase index, ground rules, test strategy and open decisions. `phase-0-setup.md` holds the **real TM entity and field names** table, which replaces the blueprint's placeholders.
@@ -49,5 +49,8 @@ The project is an ES module (`"type": "module"` in `package.json`), so use `impo
 
 ## Working with the user
 
-- **The user runs all development, test and deployment commands themselves, to learn.** This covers `npm`/`npx`/`node`, `cds` (init, add, import, watch, bind, deploy), `jest`, `mbt` and `cf`, and these are denied in `.claude/settings.json`. Give the exact command in a code block, say what it does and what output to look for, then wait for the user to paste the result. Other shell commands, such as read-only inspection (`ls`, `git status`, `git diff`), are fine to run.
+- **Explain the plan before acting.** Before starting a task, briefly tell the user what you are going to do (which files, which commands, and why), then proceed.
+- **Claude may run development and test commands itself** (`npm`/`npx`/`node`, `cds watch`, `cds import`, `cds add`, `jest`). Run `npm test` after changes and fix failures directly.
+- **Ask before any build or deployment command**: `mbt build`, `cf` (login, deploy, push, bind, …), `cds deploy`, `cds bind`. Say what the command does and what it affects, and wait for the user's go-ahead each time.
+- **Keep unit tests light, to speed up development.** Don't write new tests by default, and don't spend effort on test coverage in the phase steps. Keep the existing tests green, and verify new work with `cds watch` and `test/http/*.http` requests instead. Add a test only for genuinely tricky logic or when the user asks.
 - **Keep all Claude memory and settings in this repo, never global.** Record durable preferences and project facts in this file (or `CLAUDE.local.md` for private, uncommitted notes), and settings in `.claude/settings.json` (shared) or `.claude/settings.local.json` (private). Do not write to `~/.claude/` or the global auto-memory directory.
