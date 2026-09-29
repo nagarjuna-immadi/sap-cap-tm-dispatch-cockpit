@@ -377,6 +377,7 @@ sap-cap-tm-dispatch-cockpit/
 | **3 – Tender Desk + App 2** | `TenderService`, restricted roles, quote and decline | A quote entered as `satish` shows up for `nag` and can be awarded |
 | **4 – Hybrid & deploy** | Destination, `cds bind`, MTA, xsuaa roles, deploy to trial | Apps run on BTP against the real sandbox for every TM API that has one |
 | **5 – Extras (optional, real tenant)** | App 3 analytics, Work Zone launchpad, **writeback of the awarded carrier to `CE_FREIGHTORDER_0001`**, remote Business Partner for carriers | — |
+| **6 – Agents & MCP** | `DispatchAgentService` / `TenderAgentService` as MCP servers and A2A agents on the Anthropic API, TM Assistant chat app (§13) | Tender → quote → award via chat in Work Zone, every write approved |
 
 ---
 
@@ -391,3 +392,28 @@ sap-cap-tm-dispatch-cockpit/
 - **Sandbox rate limits:** cache carriers and code lists; never call the API once per row.
 - **Writeback (phase 5):** `CE_FREIGHTORDER_0001` is a genuine write API. Never point it at the sandbox, and guard it with a profile flag so a misconfigured environment cannot post into a shared tenant.
 - **Trial expiry:** trial accounts expire or need extending. Keep the MTA reproducible.
+
+---
+
+## 13. Agents and MCP servers (phase 6)
+
+**Why:** dispatchers and carrier desk users should be able to ask "what still needs a carrier on lane X?" or "award the cheapest valid offer" in plain language, and other AI tools should be able to use the same capabilities over MCP.
+
+**Constraint:** the BTP trial account has no AI Core or Joule entitlement. The LLM is called **directly on the Anthropic API** with an API key (`cds.requires.llm.kind: "anthropic"`). The key lives in `.env` locally and in a user-provided service `sap-cap-tm-dispatch-cockpit-llm` on BTP, never in git or the MTA.
+
+```
+ Browser ─► Approuter (xsuaa) ─► /a2a/dispatch-agent  ─┐        ┌─► Anthropic API
+  TM Assistant (UI5, Work Zone)  /a2a/tender-agent    ─┤ agent ──┘   (Claude)
+                                                       │  │ MCP tools (in-process)
+ Claude Code (local only) ─────► /mcp/dispatch-agent ──┤  ▼
+                                 /mcp/tender-agent   ──┴─► DispatchAgentService / TenderAgentService
+                                                            └─► DispatchService / TenderService (rules, TM read)
+```
+
+- **Plugins:** `@cap-js/mcp` serves a service as an MCP server (`@protocol: ['mcp']`, path `/mcp/<service>`). `@cap-js/agents` turns it into an agent (`@agent`, A2A at `/a2a/<service>`, conversations persisted in the app DB, `@agent.hitl` for approvals).
+- **Dedicated agent services** (`srv/agents/`), not the Fiori services: `DispatchAgentService` (`Dispatcher`) and `TenderAgentService` (`CarrierDesk`). They expose read-only local projections, a few functions that return a compact freight order context, and the tender actions. Everything delegates to `DispatchService` / `TenderService`, so the rules stay in `award-rules.js`.
+- **Same user, same roles:** agents and MCP tools run as the calling user. `@requires`/`@restrict` apply unchanged, and no new scopes are needed.
+- **Every write needs approval** (`@agent.hitl`). TM stays read-only for the agents in every phase.
+- **SAP API Policy:** CAP agents are meant for custom services, not for agentic access to SAP application APIs. The agent services therefore expose no generic TM entity (open decision 4 in the plan).
+- **Chat UI:** the plugin preview (`/a2a/<service>/preview/`) and Claude Code, registered by the MCP plugin's autowire, locally. In the cloud, the UI5 app **TM Assistant** (`app/assistant/`, Work Zone tile `Assistant-chat`) talks A2A through the approuter. `/mcp` is not exposed in the cloud until an OAuth setup for external clients is decided.
+- **Cost control:** `cds.agents.quotas` per user and hour, Haiku in development, `mock` in tests.

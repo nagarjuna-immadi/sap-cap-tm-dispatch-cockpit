@@ -2,7 +2,7 @@
 
 A full-stack **SAP CAP** (Node.js) application with **SAP Fiori elements V4** UIs, deployed to an **SAP BTP trial** account. It adds a spot-tendering and carrier-scoring layer on top of the **Transportation Management (TM)** OData V4 APIs of SAP S/4HANA Cloud Public Edition, which it reads through the SAP Business Accelerator Hub sandbox.
 
-> **Status:** phases 0–4 are done. Phase 0 (setup and mocked TM services), phase 1 (domain model, tender and award rules, Dispatch service at `/odata/v4/dispatch`), phase 2 (Dispatch Cockpit app, `app/dispatch-cockpit`), phase 3 (Tender service at `/odata/v4/tender`, role restrictions, `xs-security.json`, Tender Desk app `app/tender-desk`) and phase 4 (hybrid mode against the SAP API Business Hub sandbox, BTP trial deployment via MTA, Work Zone site with both tiles) are complete. Phase 5 (extras) is next. The full specification is in [`blueprint.md`](blueprint.md). Implementation follows the phases listed below.
+> **Status:** phases 0–4 are done. Phase 0 (setup and mocked TM services), phase 1 (domain model, tender and award rules, Dispatch service at `/odata/v4/dispatch`), phase 2 (Dispatch Cockpit app, `app/dispatch-cockpit`), phase 3 (Tender service at `/odata/v4/tender`, role restrictions, `xs-security.json`, Tender Desk app `app/tender-desk`) and phase 4 (hybrid mode against the SAP API Business Hub sandbox, BTP trial deployment via MTA, Work Zone site with both tiles) are complete. Phase 5 (extras) is next; phase 6 (agents and MCP servers) is planned. The full specification is in [`blueprint.md`](blueprint.md). Implementation follows the phases listed below.
 
 ## Why
 
@@ -112,5 +112,6 @@ mta.yaml, xs-security.json, package.json
 | 3 | Tender Desk service and app, roles |
 | 4 | Hybrid mode and BTP deployment |
 | 5 | Scorecard analytics, Work Zone, carrier writeback to TM (real tenant only) |
+| 6 | Dispatch and tender agents, MCP servers, TM Assistant chat app (Anthropic API, no AI Core) |
 
 See [`blueprint.md`](blueprint.md) for the domain model, service contracts, business rules and risks.

@@ -12,6 +12,7 @@ This is the step-by-step build plan for `sap-cap-tm-dispatch-cockpit`. The **wha
 | 3 | [Tender Desk service and app 2](phase-3-tender-desk.md) | A quote entered by satish shows up for nag and can be awarded. |
 | 4 | [Hybrid mode and BTP deployment](phase-4-deployment.md) | The apps run on BTP trial against the real sandbox for every TM API that has one. |
 | 5 | [Extras (optional, real tenant)](phase-5-extras.md) | Analytics, scorecard, launchpad, writeback, remote Business Partner. |
+| 6 | [Agents and MCP servers](phase-6-agents-mcp.md) | Dispatch and tender agents plus MCP servers on the Anthropic API (no AI Core), used from the TM Assistant chat app in Work Zone. |
 
 ## Ground rules
 
@@ -40,3 +41,4 @@ Run all tests with `npx jest`. Run a single test with `npx jest test/<file>.test
 | 1 | Behaviour if `CE_FREIGHTORDER_0001` has no usable sandbox data (keep mocks on BTP, or use seed data) | Phase 0.1 |
 | 2 | Collection parameter vs. `inviteCarriers` fallback for `startTender` | Phase 2 |
 | 3 | Whether `closeRound` should also run automatically when a BROADCAST deadline passes and all offers have responded | Phase 1 |
+| 4 | SAP API Policy boundary: agent/MCP services expose local tender data plus a fixed freight order context, never a generic TM entity | Phase 6.0 |

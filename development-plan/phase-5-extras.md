@@ -1,6 +1,6 @@
 # Phase 5: Extras (optional, real tenant)
 
-[← Development plan](README.md) · Previous: [Phase 4](phase-4-deployment.md)
+[← Development plan](README.md) · Previous: [Phase 4](phase-4-deployment.md) · Next: [Phase 6](phase-6-agents-mcp.md)
 
 - [ ] **`AnalyticsService`** (`@requires: 'TransportManager'`), with aggregated views for:
   - awards per carrier
