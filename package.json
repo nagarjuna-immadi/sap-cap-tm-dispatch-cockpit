@@ -3,17 +3,19 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@sap/cds": "^10.1.1",
+    "@cap-js/hana": "^3",
     "@sap-cloud-sdk/connectivity": "^4",
     "@sap-cloud-sdk/http-client": "^4",
     "@sap-cloud-sdk/resilience": "^4",
+    "@sap/cds": "^10.1.1",
     "@sap/xssec": "^4"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1.0.2",
     "@cap-js/sqlite": "^3.1.1",
-    "jest": "^30.5.2",
-    "cds-plugin-ui5": "^0.17.0"
+    "@sap/cds-dk": "^10",
+    "cds-plugin-ui5": "^0.17.0",
+    "jest": "^30.5.2"
   },
   "scripts": {
     "start": "cds-serve",
@@ -34,6 +36,12 @@
           "credentials": {
             "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata4/sap/api_freightbooking/srvd_a2x/sap/freightbooking/0001"
           }
+        },
+        "[production]": {
+          "credentials": {
+            "destination": "S4_SANDBOX",
+            "path": "/sap/opu/odata4/sap/api_freightbooking/srvd_a2x/sap/freightbooking/0001"
+          }
         }
       },
       "CE_FREIGHTORDER_0001": {
@@ -43,6 +51,12 @@
         "[hybrid]": {
           "credentials": {
             "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata4/sap/api_freightorder/srvd_a2x/sap/freightorder/0001"
+          }
+        },
+        "[production]": {
+          "credentials": {
+            "destination": "S4_SANDBOX",
+            "path": "/sap/opu/odata4/sap/api_freightorder/srvd_a2x/sap/freightorder/0001"
           }
         }
       },
@@ -54,11 +68,19 @@
           "credentials": {
             "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata4/sap/api_freightunit/srvd_a2x/sap/freightunit/0001"
           }
+        },
+        "[production]": {
+          "credentials": {
+            "destination": "S4_SANDBOX",
+            "path": "/sap/opu/odata4/sap/api_freightunit/srvd_a2x/sap/freightunit/0001"
+          }
         }
       },
       "[production]": {
         "auth": "xsuaa"
-      }
+      },
+      "destinations": true,
+      "html5-repo": true
     }
   },
   "workspaces": [

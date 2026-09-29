@@ -315,7 +315,7 @@ In `package.json` → `cds.requires`, point each `CE_FREIGHT*_0001` service at `
 }}
 ```
 
-The `tm-dispatch-destination` resource in the MTA only binds the app to the Destination service. It must **not** create or overwrite `S4_SANDBOX`.
+The `sap-cap-tm-dispatch-cockpit-destination` resource in the MTA only binds the app to the Destination service. It must **not** create or overwrite `S4_SANDBOX`.
 
 **MTA modules (`mta.yaml`, generated with `cds add mta hana xsuaa destination html5-repo approuter`):**
 
@@ -327,7 +327,7 @@ The `tm-dispatch-destination` resource in the MTA only binds the app to the Dest
 | `tm-dispatch-approuter` | standalone approuter |
 | `tm-dispatch-db` | `hana` / `hdi-shared` |
 | `tm-dispatch-auth` | `xsuaa` / `application` |
-| `tm-dispatch-destination` | `destination` / `lite` |
+| `sap-cap-tm-dispatch-cockpit-destination` | `destination` / `lite` |
 | `tm-dispatch-html5-repo-host` | `html5-apps-repo` / `app-host` |
 
 **Steps:**
