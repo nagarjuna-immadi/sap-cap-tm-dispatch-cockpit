@@ -38,6 +38,7 @@ The project is an ES module (`"type": "module"` in `package.json`), so use `impo
 - **Services and roles:** `DispatchService` (`/odata/v4/dispatch`) is for the `Dispatcher` role. `TenderService` (`/odata/v4/tender`) is for the `CarrierDesk` role and is kept deliberately narrow; `@restrict` must keep it away from the award fields. The optional `AnalyticsService` is for `TransportManager`. Local mock users go in `.cdsrc.json`: `nag` (dispatcher), `satish` (carrier desk), `srini` (transport manager).
 - **Destination `S4_SANDBOX`** is created manually at subaccount level. Its URL is the base `https://sandbox.api.sap.com/s4hanacloud` and the API key goes in the `URL.headers.APIKey` header. Each `CE_FREIGHT*_0001` service appends its own `path` under `[production].credentials`. The MTA's `sap-cap-tm-dispatch-cockpit-destination` resource only binds the app to the destination service and must **not** create or overwrite `S4_SANDBOX`.
 - **UI annotations:** put them in `app/<app>/annotations.cds`. Shared value helps go in `srv/common-annotations.cds`.
+- **Work Zone:** the manifests carry `sap.cloud.service` (`sapcaptmdispatchcockpit.service`) and one `crossNavigation` inbound each (`FreightOrder-dispatch`, `FreightTender-quote`). The `dataSources` URIs must stay **relative** (`odata/v4/...`) so that they resolve under the managed approuter; the root `server.js` strips the `/tm.dispatch.<app>` prefix for local `cds watch`.
 
 ## Constraints
 

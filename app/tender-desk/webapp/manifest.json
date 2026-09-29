@@ -16,11 +16,26 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/odata/v4/tender/",
+        "uri": "odata/v4/tender/",
         "type": "OData",
         "settings": {
           "annotations": [],
           "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "FreightTender-quote": {
+          "semanticObject": "FreightTender",
+          "action": "quote",
+          "title": "{{appTitle}}",
+          "subTitle": "{{flpSubtitle}}",
+          "icon": "sap-icon://sales-quote",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
         }
       }
     }
@@ -142,5 +157,9 @@
     "app": {
       "enableLazyLoading": true
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "sapcaptmdispatchcockpit.service"
   }
 }

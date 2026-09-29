@@ -17,11 +17,26 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/odata/v4/dispatch/",
+        "uri": "odata/v4/dispatch/",
         "type": "OData",
         "settings": {
           "annotations": [],
           "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "FreightOrder-dispatch": {
+          "semanticObject": "FreightOrder",
+          "action": "dispatch",
+          "title": "{{appTitle}}",
+          "subTitle": "{{flpSubtitle}}",
+          "icon": "sap-icon://shipping-status",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
         }
       }
     }
@@ -194,5 +209,9 @@
     "app": {
       "enableLazyLoading": true
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "sapcaptmdispatchcockpit.service"
   }
 }

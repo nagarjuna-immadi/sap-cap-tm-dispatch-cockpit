@@ -9,6 +9,6 @@
   - on-time ratio from `ExecutionEvents`
   - average award lead time
 - [ ] **App 3, Carrier Scorecard** (ALP or OVP): KPI cards and charts as in §7.
-- [ ] **Work Zone** launchpad with the three apps.
+- [ ] **Work Zone** launchpad with the three apps. The site and the tiles for the Dispatch Cockpit and the Tender Desk are set up in [4.3](phase-4-deployment.md#work-zone-preparation-tiles). Here, only the analytics app's tile is still to add.
 - [ ] **Writeback** of the awarded carrier to `CE_FREIGHTORDER_0001`, behind the profile flag `cds.requires.tm-writeback` (off by default). Refuse writeback when the URL matches `sandbox.api.sap.com`. Only use it on a real tenant.
 - [ ] **Remote Business Partner** for carrier value help, behind a profile flag. `CarrierOffers` stays unchanged.

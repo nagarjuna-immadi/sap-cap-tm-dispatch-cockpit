@@ -19,8 +19,19 @@
 
 ## 4.3 Deploy
 
-- [ ] In the BTP cockpit, create `S4_SANDBOX` manually and start HANA Cloud.
-- [ ] Run `mbt build`, `cf login`, then `cf deploy mta_archives/sap-cap-tm-dispatch-cockpit_1.0.0.mtar`.
+- [x] In the BTP cockpit, create `S4_SANDBOX` manually and start HANA Cloud.
+- [x] Run `mbt build`, `cf login`, then `cf deploy mta_archives/sap-cap-tm-dispatch-cockpit_1.0.0.mtar`.
 - [ ] Assign the role collections, then smoke-test both apps with two different users.
+
+### Work Zone preparation (tiles)
+
+- [x] Run `cds add workzone-standard`. It adds `sap.cloud.service` (`sapcaptmdispatchcockpit.service`) to both manifests, the `srv-api` destination to the app deployer, and the destinations module (HTML5 repo host and XSUAA `OAuth2UserTokenExchange`, scoped to the destination service instance). `S4_SANDBOX` is not touched.
+- [x] Give each app its own `crossNavigation` inbound with a title, a subtitle (`flpSubtitle` in i18n) and an icon: `FreightOrder-dispatch` (Dispatch Cockpit) and `FreightTender-quote` (Tender Desk). The generator gave both apps the same `tender-desk-display` intent, which would have clashed.
+- [x] Make the `dataSources` URIs relative (`odata/v4/...`) so that they resolve under the managed approuter. The root `server.js` strips the `/tm.dispatch.<app>` prefix so local `cds watch` still works.
+- [ ] Redeploy (`mbt build`, `cf deploy …`), then check that both apps are listed under **HTML5 → Application Repository** in the BTP cockpit.
+- [ ] In Work Zone, open **Channel Manager** and refresh the **HTML5 Apps** provider.
+- [ ] In **Content Manager → Content Explorer → HTML5 Apps**, add both apps.
+- [ ] In **My Content**, create the group `TM Dispatch` with both apps, and assign both apps to the **Everyone** role. That role only controls whether the tiles are visible. Data access is still enforced by `@restrict` and the role collections.
+- [ ] In the **Site Directory**, create the site `TM Dispatch Cockpit` and open it. Check that both tiles launch, as `nag` (`TM_Dispatcher`) and as `satish` (`TM_Carrier_Desk`). Log out and back in after changing roles.
 
 **Exit criteria:** both apps run through the approuter on BTP, freight orders come from the sandbox (or from seed data if §12's fallback applies), and a complete tender → quote → award flow works in the cloud.
