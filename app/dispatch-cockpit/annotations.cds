@@ -314,8 +314,7 @@ annotate service.CarrierOffers with {
 };
 
 annotate service.CarrierOffers with @(UI.LineItem: [
-  { Value: carrierName },
-  { Value: carrierId },
+  { Value: carrierId },   // shown as "name (ID)", see srv/common-annotations.cds
   { Value: status_code, Criticality: status.criticality },
   { Value: price },
   { Value: transitHours },
