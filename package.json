@@ -108,6 +108,10 @@
       "destinations": true,
       "html5-repo": true,
       "workzone": true
+    },
+    "mcp": {
+      "prefix": true,
+      "per_action_tool": true
     }
   },
   "workspaces": [
