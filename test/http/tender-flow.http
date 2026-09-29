@@ -1,0 +1,85 @@
+### Tender → quote → award (development plan phase 2), nag (Dispatcher) and satish (CarrierDesk)
+# Start `cds watch`, then run the requests top to bottom (VS Code REST Client).
+# The quotes stand in for the Tender Desk app (phase 3): satish enters them through
+# TenderService. The UI steps can be done in the Dispatch Cockpit instead of here;
+# the quote requests pick up whatever invitations are open for {{order}}.
+
+@server = http://localhost:4004
+@dispatch = {{server}}/odata/v4/dispatch
+@tender = {{server}}/odata/v4/tender
+@nag = Basic nag:
+@satish = Basic satish:
+@order = 6100000005
+
+### nag: open the order (creates its dispatch, NEW)
+# @name openOrder
+GET {{dispatch}}/FreightOrders('{{order}}')?$select=TransportationOrder,dispatchStatus&$expand=dispatch($select=ID)
+Authorization: {{nag}}
+
+### nag: start a PEER round with three carriers (PEER can be awarded before the deadline;
+### BROADCAST only after it has passed)
+POST {{dispatch}}/FreightOrders('{{order}}')/DispatchService.startTender
+Authorization: {{nag}}
+Content-Type: application/json
+
+{ "mode": "PEER", "deadline": "2099-12-31T12:00:00Z", "carriers": ["10300001", "10300002", "10300003"] }
+
+### satish: open invitations of the order (INVITED, round open, deadline not passed)
+# @name invitations
+GET {{tender}}/OpenInvitations?$filter=freightOrderId eq '{{order}}'&$orderby=carrierId
+Authorization: {{satish}}
+
+@offer1 = {{invitations.response.body.$.value[0].ID}}
+@offer2 = {{invitations.response.body.$.value[1].ID}}
+@offer3 = {{invitations.response.body.$.value[2].ID}}
+
+### satish: quote for the first carrier
+POST {{tender}}/OpenInvitations({{offer1}})/TenderService.submitQuote
+Authorization: {{satish}}
+Content-Type: application/json
+
+{ "price": 1450.00, "currency": "EUR", "transitHours": 20, "comment": "Quoted by phone" }
+
+### satish: a cheaper quote for the second carrier
+POST {{tender}}/OpenInvitations({{offer2}})/TenderService.submitQuote
+Authorization: {{satish}}
+Content-Type: application/json
+
+{ "price": 1290.50, "currency": "EUR", "transitHours": 26, "comment": "Quoted by mail" }
+
+### satish: the third carrier declines
+POST {{tender}}/OpenInvitations({{offer3}})/TenderService.decline
+Authorization: {{satish}}
+Content-Type: application/json
+
+{ "comment": "No capacity that week" }
+
+### Rule check: an offer is quoted only once (expect 400 OFFER_NOT_INVITED)
+POST {{tender}}/OpenInvitations({{offer1}})/TenderService.submitQuote
+Authorization: {{satish}}
+Content-Type: application/json
+
+{ "price": 999, "currency": "EUR", "transitHours": 10 }
+
+### nag is refused on TenderService (expect 403)
+GET {{tender}}/OpenInvitations
+Authorization: {{nag}}
+
+### nag: the list row shows best quote 1290.50 EUR and 2 quotes
+GET {{dispatch}}/FreightOrders?$filter=TransportationOrder eq '{{order}}'&$select=TransportationOrder,dispatchStatus,bestQuote,bestQuoteCurrency,quoteCount,quoteDeadline
+Authorization: {{nag}}
+
+### nag: award the cheaper quote (offer 2): WON, offer 1 LOST, round closed, dispatch AWARDED
+POST {{dispatch}}/CarrierOffers(ID={{offer2}},IsActiveEntity=true)/DispatchService.award
+Authorization: {{nag}}
+Content-Type: application/json
+
+{}
+
+### nag: the header data: status, awarded carrier and price
+GET {{dispatch}}/FreightOrders('{{order}}')?$select=TransportationOrder,dispatchStatus&$expand=dispatch($select=awardedCarrier,awardedPrice,currency_code,awardedBy,awardedAt)
+Authorization: {{nag}}
+
+### nag: the round with its offers
+GET {{dispatch}}/Dispatch(ID={{openOrder.response.body.dispatch.ID}},IsActiveEntity=true)/rounds?$expand=offers($select=carrierId,carrierName,status_code,price,currency_code,transitHours,respondedAt,comment)
+Authorization: {{nag}}

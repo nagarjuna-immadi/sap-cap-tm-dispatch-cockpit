@@ -2,7 +2,7 @@
 
 A full-stack **SAP CAP** (Node.js) application with **SAP Fiori elements V4** UIs, deployed to an **SAP BTP trial** account. It adds a spot-tendering and carrier-scoring layer on top of the **Transportation Management (TM)** OData V4 APIs of SAP S/4HANA Cloud Public Edition, which it reads through the SAP Business Accelerator Hub sandbox.
 
-> **Status:** phase 1 in progress. Phase 0 (setup and mocked TM services) is done, and in phase 1 the domain model, the tender and award rules and the Dispatch service (`/odata/v4/dispatch`) are done. The full specification is in [`blueprint.md`](blueprint.md). Implementation follows the phases listed below.
+> **Status:** phase 2 in progress. Phase 0 (setup and mocked TM services) and phase 1 (domain model, tender and award rules, Dispatch service at `/odata/v4/dispatch`) are done. In phase 2 the Dispatch Cockpit app (`app/dispatch-cockpit`) is built, and quotes can be entered through the core of the Tender service (`/odata/v4/tender`); the manual UI check of the exit criterion is still open. The full specification is in [`blueprint.md`](blueprint.md). Implementation follows the phases listed below.
 
 ## Why
 

@@ -55,7 +55,7 @@ Content-Type: application/json
 
 {}
 
-### (Enter a quote for the first offer: TenderService submitQuote, phase 3)
+### (Enter a quote for the first offer as satish: see tender-flow.http, TenderService submitQuote)
 
 ### Award the quoted offer: WON, other quotes LOST, unanswered EXPIRED, round closed,
 ### dispatch AWARDED with carrier, price, user and timestamp

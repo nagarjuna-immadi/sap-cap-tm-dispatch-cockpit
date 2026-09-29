@@ -4,7 +4,7 @@
 
 **Goal:** a quote entered by satish shows up for nag and can be awarded.
 
-- [ ] `srv/tender-service.cds` + `.js`: `@requires: 'CarrierDesk'`.
+- [ ] `srv/tender-service.cds` + `.js`: `@requires: 'CarrierDesk'`. **Core done in phase 2** (`OpenInvitations` with freight order ID, round, mode and deadline; `submitQuote` and `decline` with award-rules). Still open: the lane and dates from TM on `OpenInvitations`.
   - `OpenInvitations`: projection on `CarrierOffers` where status is INVITED, the round is open and the deadline is in the future. It exposes the read-only freight order context (ID, lane, dates) and **none of the award fields**.
   - `submitQuote(price, currency, transitHours, comment)` and `decline(comment)` use `award-rules`, and `submitQuote` stamps `respondedAt`.
 - [ ] `@restrict` rules: `award`, `startTender`, `closeRound` and `cancelTender` are for Dispatcher only; `submitQuote` and `decline` are for CarrierDesk only. Check that nag is refused on TenderService and satish on DispatchService.
