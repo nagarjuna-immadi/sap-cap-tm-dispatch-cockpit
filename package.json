@@ -88,6 +88,10 @@
         "llm": {
           "kind": "anthropic",
           "model": "claude-haiku-4-5-20251001"
+        },
+        "attachments": {
+          "kind": "db",
+          "scan": false
         }
       },
       "[test]": {
@@ -103,6 +107,10 @@
           "vcap": {
             "name": "sap-cap-tm-dispatch-cockpit-llm"
           }
+        },
+        "attachments": {
+          "kind": "db",
+          "scan": false
         }
       },
       "destinations": true,
@@ -112,6 +120,14 @@
     "mcp": {
       "prefix": true,
       "per_action_tool": true
+    },
+    "agents": {
+      "quotas": {
+        "maxTasksPerHour": 30,
+        "maxConcurrentTasksPerUser": 2,
+        "maxIncomingMessageLength": 4000,
+        "maxLLMCallTimeout": "60s"
+      }
     }
   },
   "workspaces": [
