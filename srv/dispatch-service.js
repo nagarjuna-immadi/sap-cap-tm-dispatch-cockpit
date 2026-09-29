@@ -114,8 +114,9 @@ export default class DispatchService extends cds.ApplicationService {
 
     this.on('READ', FreightUnits, req => this.readFreightUnits(req))
 
-    this.on('READ', [FreightOrderStops, FreightOrderStages, FreightOrderItems], req =>
-      req.reject(400, `Read ${req.target.name.split('.').pop()} with $expand on a single freight order`))
+    this.on('READ', [FreightOrderStops, FreightOrderItems], req => this.readFreightOrderPart(req))
+    this.on('READ', FreightOrderStages, req =>
+      req.reject(400, 'Read FreightOrderStages with $expand on the stops of a single freight order'))
 
     // --- Dispatch lifecycle ---------------------------------------------------------
 
@@ -176,6 +177,34 @@ export default class DispatchService extends cds.ApplicationService {
     const units = expandOf(req.query, 'freightUnits')
     if (units) row.freightUnits = (await tm.readFreightUnits(id)).map(u => ({ ...u, freightOrderId: id }))
     return row
+  }
+
+  /**
+   * Stops or items of one freight order, read as FreightOrders('…')/_FreightOrderStop or
+   * /_FreightOrderItem: that is how the object page loads its tables. TM returns them
+   * with the order, so $orderby, $top, $skip and $count are applied here, in memory.
+   */
+  async readFreightOrderPart(req) {
+    const { from, orderBy, limit, count } = req.query.SELECT
+    const segment = from.ref?.length === 2 ? from.ref[1] : undefined
+    const nav = typeof segment === 'string' ? segment : segment?.id
+    if (!nav || req.params.length !== 1)
+      return req.reject(400, `Read ${req.target.name.split('.').pop()} through a single freight order`)
+
+    const { row } = await this.openFreightOrder(req, keyValue(req.params[0], 'TransportationOrder'))
+    let rows = [...(row[nav] ?? [])]
+    if (!expandOf(req.query, '_FreightOrderStage')) for (const r of rows) delete r._FreightOrderStage
+
+    const cmp = (a, b) => (a === b ? 0 : a === null || a === undefined ? -1 : b === null || b === undefined ? 1 : a < b ? -1 : 1)
+    for (const { ref, sort } of [...(orderBy ?? [])].reverse()) {   // stable sort, last key first
+      const dir = sort === 'desc' ? -1 : 1
+      rows.sort((a, b) => dir * cmp(a[ref?.[0]], b[ref?.[0]]))
+    }
+    const total = rows.length
+    const skip = limit?.offset?.val ?? 0
+    rows = rows.slice(skip, skip + (limit?.rows?.val ?? total))
+    if (count) rows.$count = total
+    return rows
   }
 
   /** Enrichment, criticality and lane; the dispatch expand; drops TM expands not asked for. */
