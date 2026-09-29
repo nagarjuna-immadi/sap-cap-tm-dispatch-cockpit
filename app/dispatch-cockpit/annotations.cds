@@ -324,14 +324,19 @@ annotate service.CarrierOffers with @(UI.LineItem: [
 ]);
 
 // Award: only a quoted offer of the saved dispatch; the rest of the round changes too
-// (other quotes LOST, unanswered EXPIRED, round closed) and the dispatch gets the award.
+// (other quotes LOST, unanswered EXPIRED, round closed) and the dispatch gets the award,
+// so there is no need to close the round by hand.
 annotate service.CarrierOffers with actions {
   award @(
     Core.OperationAvailable: { $edmJson: { $And: [
       { $Path: 'in/IsActiveEntity' },
       { $Eq: [{ $Path: 'in/status_code' }, 'QUOTED'] },
     ] } },
-    Common.SideEffects     : { TargetEntities: ['in/parent', 'in/parent/offers', 'in/parent/parent'] }
+    // the absolute path re-reads every page under Dispatch, including the round page the
+    // action runs on (a path through in/parent does not reach that page's own context)
+    Common.SideEffects     : { TargetEntities: [
+      'in/parent', 'in/parent/offers', 'in/parent/parent', '/DispatchService.EntityContainer/Dispatch',
+    ] }
   );
 };
 

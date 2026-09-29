@@ -6,7 +6,8 @@
     "@sap/cds": "^10.1.1",
     "@sap-cloud-sdk/connectivity": "^4",
     "@sap-cloud-sdk/http-client": "^4",
-    "@sap-cloud-sdk/resilience": "^4"
+    "@sap-cloud-sdk/resilience": "^4",
+    "@sap/xssec": "^4"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1.0.2",
@@ -18,7 +19,8 @@
     "start": "cds-serve",
     "watch": "cds watch",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "watch-dispatch-cockpit": "cds watch --open tm.dispatch.dispatchcockpit/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-dispatch-cockpit": "cds watch --open tm.dispatch.dispatchcockpit/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-tender-desk": "cds watch --open tm.dispatch.tenderdesk/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "private": true,
   "cds": {
@@ -34,6 +36,9 @@
       "CE_FREIGHTUNIT_0001": {
         "kind": "odata",
         "model": "srv/external/CE_FREIGHTUNIT_0001"
+      },
+      "[production]": {
+        "auth": "xsuaa"
       }
     }
   },
@@ -41,6 +46,7 @@
     "app/*"
   ],
   "sapux": [
-    "app/dispatch-cockpit"
+    "app/dispatch-cockpit",
+    "app/tender-desk"
   ]
 }

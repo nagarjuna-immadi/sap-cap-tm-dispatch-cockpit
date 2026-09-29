@@ -5,6 +5,10 @@ using { CE_FREIGHTUNIT_0001 as FU } from './external/CE_FREIGHTUNIT_0001';
 /**
  * Dispatcher's service (blueprint §5, development plan 1.4).
  *
+ * Only Dispatcher gets in (@requires); the entities that carry the tender and award
+ * actions restrict them to Dispatcher again, so the rule holds even if the service-level
+ * requirement is widened later (e.g. read access for TransportManager).
+ *
  * TM entities are read through custom READ handlers (dispatch-service.js → tm-client,
  * enrich); they never hit the database. Everything written goes to local entities.
  */
@@ -20,6 +24,7 @@ service DispatchService {
    * only dispatchStatus and deadlineExpired can be filtered on (resolved locally, §12).
    */
   @readonly
+  @restrict: [{ grant: ['READ', 'startTender', 'cancelTender'], to: 'Dispatcher' }]
   @Capabilities.SearchRestrictions.Searchable: false
   @Capabilities.SortRestrictions.NonSortableProperties: [
     dispatchStatus, dispatchStatusCriticality, bestQuote, bestQuoteCurrency, quoteCount,
@@ -149,6 +154,7 @@ service DispatchService {
    * change through the actions, which work on the active instance.
    */
   @odata.draft.enabled
+  @restrict: [{ grant: '*', to: 'Dispatcher' }]   // draft events and closeRound, reportException
   @Capabilities.InsertRestrictions.Insertable: false
   @Capabilities.DeleteRestrictions.Deletable: false
   entity Dispatch as projection on db.FreightOrderDispatch actions {
@@ -163,6 +169,7 @@ service DispatchService {
   @readonly entity TenderRounds as projection on db.TenderRounds;
 
   @readonly
+  @restrict: [{ grant: ['READ', 'award'], to: 'Dispatcher' }]
   entity CarrierOffers as projection on db.CarrierOffers actions {
     action award() returns CarrierOffers;
   };
@@ -185,3 +192,12 @@ annotate DispatchService.Dispatch with {
   awardedBy       @readonly;
   quoteDeadline   @readonly;
 };
+
+// The TM entities carry @Common.Messages: SAP__Messages, but the projections do not
+// expose that element. Fiori elements would then put SAP__Messages into $select, and
+// UI5 rejects the whole object page binding ("Invalid (navigation) property").
+annotate DispatchService.FreightOrders      with @Common.Messages: null;
+annotate DispatchService.FreightOrderStops  with @Common.Messages: null;
+annotate DispatchService.FreightOrderStages with @Common.Messages: null;
+annotate DispatchService.FreightOrderItems  with @Common.Messages: null;
+annotate DispatchService.FreightUnits       with @Common.Messages: null;

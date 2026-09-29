@@ -1,0 +1,66 @@
+{
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.Dispatcher",
+      "description": "Tender freight orders, award offers, report exceptions (DispatchService)"
+    },
+    {
+      "name": "$XSAPPNAME.CarrierDesk",
+      "description": "Quote or decline open invitations on behalf of carriers (TenderService)"
+    },
+    {
+      "name": "$XSAPPNAME.TransportManager",
+      "description": "Carrier performance analytics (AnalyticsService, phase 5)"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "Dispatcher",
+      "description": "Dispatcher",
+      "scope-references": [
+        "$XSAPPNAME.Dispatcher"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "CarrierDesk",
+      "description": "Carrier Desk",
+      "scope-references": [
+        "$XSAPPNAME.CarrierDesk"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "TransportManager",
+      "description": "Transport Manager",
+      "scope-references": [
+        "$XSAPPNAME.TransportManager"
+      ],
+      "attribute-references": []
+    }
+  ],
+  "role-collections": [
+    {
+      "name": "TM_Dispatcher",
+      "description": "Freight tendering and award (Dispatch Cockpit)",
+      "role-template-references": [
+        "$XSAPPNAME.Dispatcher"
+      ]
+    },
+    {
+      "name": "TM_Carrier_Desk",
+      "description": "Carrier quotes (Tender Desk)",
+      "role-template-references": [
+        "$XSAPPNAME.CarrierDesk"
+      ]
+    },
+    {
+      "name": "TM_Transport_Manager",
+      "description": "Carrier scorecard and analytics",
+      "role-template-references": [
+        "$XSAPPNAME.TransportManager"
+      ]
+    }
+  ]
+}

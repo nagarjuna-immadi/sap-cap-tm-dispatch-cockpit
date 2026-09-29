@@ -46,7 +46,34 @@ export function isExpired (deadline, now) {
   return toMillis(now) >= d
 }
 
-/** The offer status as it should be shown: an INVITED offer past the round deadline reads as EXPIRED. */
+/** Hours before a deadline from which it is shown as close (Tender Desk, yellow). */
+export const DEADLINE_WARNING_HOURS = 24
+
+/**
+ * UI criticality of a quote deadline: 1 (red) once expired, 2 (yellow) when less than
+ * DEADLINE_WARNING_HOURS are left, 3 (green) otherwise, 0 (neutral) without a deadline.
+ */
+export function deadlineCriticality (deadline, now) {
+  const d = toMillis(deadline)
+  if (Number.isNaN(d)) return 0
+  if (isExpired(deadline, now)) return 1
+  return d - toMillis(now) < DEADLINE_WARNING_HOURS * 3_600_000 ? 2 : 3
+}
+
+/** Time left until a deadline as text ("2 d 4 h", "3 h 15 min", "12 min"), "Expired", or null. */
+export function timeLeft (deadline, now) {
+  const d = toMillis(deadline)
+  if (Number.isNaN(d)) return null
+  const minutes = Math.floor((d - toMillis(now)) / 60_000)
+  if (minutes <= 0 || isExpired(deadline, now)) return 'Expired'
+  const days = Math.floor(minutes / 1440)
+  const hours = Math.floor((minutes % 1440) / 60)
+  if (days) return `${days} d ${hours} h`
+  if (hours) return `${hours} h ${minutes % 60} min`
+  return `${minutes} min`
+}
+
+/** The offer status as it should be shown:an INVITED offer past the round deadline reads as EXPIRED. */
 export function effectiveOfferStatus (offer, round, now) {
   const status = offerStatus(offer)
   if (status === 'INVITED' && isExpired(round?.deadline, now)) return 'EXPIRED'

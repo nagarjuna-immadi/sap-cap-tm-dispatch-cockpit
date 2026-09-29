@@ -193,7 +193,7 @@ Remote entities, imported from EDMX (exact names come from the metadata): `Freig
 
 | Entity / Action | Source | Notes |
 |---|---|---|
-| `OpenInvitations` | Local `CarrierOffers` | Only `INVITED` offers whose round is open and whose deadline has not passed |
+| `OpenInvitations` | Local `CarrierOffers` + remote Freight Order | Only `INVITED` offers whose round is open and whose deadline has not passed. Adds the freight order context (lane, pick-up and delivery dates) with one TM read per page, and the countdown (deadline criticality, time left) evaluated on read. A read by key also returns an invitation that has been answered, so the object page shows its new status |
 | action `submitQuote(price, currency, transitHours, comment)` | Local | `INVITED` → `QUOTED`, stamps `respondedAt`. Refused after the deadline |
 | action `decline(comment)` | Local | `INVITED` → `DECLINED` |
 
@@ -251,7 +251,7 @@ Aggregated views: awards per carrier, average quotes per round, savings (first q
 ### App 2 – Tender Desk (List Report + Object Page)
 
 - **List:** open invitations sorted by deadline, with a countdown (criticality on the deadline field).
-- **Object Page:** freight order context read-only, then *Submit Quote* and *Decline*. Price and transit time are draft-edited before submitting.
+- **Object Page:** freight order context read-only, then *Submit Quote* and *Decline*. Price, currency (default EUR), transit time and comment are entered in the action's parameter dialog; no draft, because the offer's quote fields are only written by `submitQuote`.
 
 ### App 3 – Carrier Scorecard (optional: Analytical List Page or Overview Page)
 

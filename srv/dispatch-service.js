@@ -77,19 +77,6 @@ const withWhere = (query, where) => {
   return { SELECT: { where, orderBy, limit, count } }
 }
 
-/** Lane and dates from the stops: first stop (position F) and last stop (position L). */
-const laneOf = (stops = []) => {
-  const sorted = [...stops].sort((a, b) => a.TransportationOrderStop.localeCompare(b.TransportationOrderStop))
-  const first = sorted.find(s => s.TranspOrdStopSequencePosition === 'F') ?? sorted[0]
-  const last = sorted.findLast(s => s.TranspOrdStopSequencePosition === 'L') ?? sorted.at(-1)
-  return {
-    sourceLocation: first?.LocationId ?? null,
-    destinationLocation: last?.LocationId ?? null,
-    pickupDateTime: first?.TranspOrdStopPlanTranspDteTme ?? null,
-    deliveryDateTime: last?.TranspOrdStopPlanTranspDteTme ?? null,
-  }
-}
-
 /** Reports a failed award-rules check; returns true when the check passed. */
 const passes = (req, check) => {
   if (check.ok) return true
@@ -213,7 +200,7 @@ export default class DispatchService extends cds.ApplicationService {
     const criticality = await statusCriticality()
     for (const r of rows) {
       r.dispatchStatusCriticality = criticality.get(r.dispatchStatus) ?? 0
-      Object.assign(r, laneOf(r._FreightOrderStop))
+      Object.assign(r, tm.laneOf(r._FreightOrderStop))
       for (const nav of ['_FreightOrderStop', '_FreightOrderItem'])
         if (!expandOf(req.query, nav)) delete r[nav]
     }

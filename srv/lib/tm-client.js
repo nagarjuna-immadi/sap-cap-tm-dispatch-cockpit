@@ -190,6 +190,33 @@ export const readFreightUnits = async (freightOrderId, query) => {
   return q ? fu.run(q) : emptyPage(query)
 }
 
+/**
+ * Read-only context of several freight orders (TenderService): header and stops, by
+ * number, whether or not a carrier is assigned. One TM call for the whole page.
+ * @returns {Promise<Map<string, object>>} freight order number → TM row
+ */
+export const readFreightOrderContexts = async freightOrderIds => {
+  const ids = [...new Set(freightOrderIds.filter(Boolean))]
+  if (!ids.length) return new Map()
+  const rows = await readFreightOrders(null, { unassignedOnly: false, onlyIds: ids })
+  return new Map(rows.map(r => [r.TransportationOrder, r]))
+}
+
+// --- derived values -----------------------------------------------------------------
+
+/** Lane and dates from the stops: first stop (position F) and last stop (position L). */
+export const laneOf = (stops = []) => {
+  const sorted = [...stops].sort((a, b) => a.TransportationOrderStop.localeCompare(b.TransportationOrderStop))
+  const first = sorted.find(s => s.TranspOrdStopSequencePosition === 'F') ?? sorted[0]
+  const last = sorted.findLast(s => s.TranspOrdStopSequencePosition === 'L') ?? sorted.at(-1)
+  return {
+    sourceLocation: first?.LocationId ?? null,
+    destinationLocation: last?.LocationId ?? null,
+    pickupDateTime: first?.TranspOrdStopPlanTranspDteTme ?? null,
+    deliveryDateTime: last?.TranspOrdStopPlanTranspDteTme ?? null,
+  }
+}
+
 /** An empty result that still answers `$count`. */
 const emptyPage = query => {
   const rows = []
