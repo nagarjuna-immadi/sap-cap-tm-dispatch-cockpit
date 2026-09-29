@@ -25,7 +25,7 @@
 
 ### Work Zone preparation (tiles)
 
-- [x] Run `cds add workzone-standard`. It adds `sap.cloud.service` (`sapcaptmdispatchcockpit.service`) to both manifests, the `srv-api` destination to the app deployer, and the destinations module (HTML5 repo host and XSUAA `OAuth2UserTokenExchange`, scoped to the destination service instance). `S4_SANDBOX` is not touched.
+- [x] Run `cds add workzone-standard`. It adds `sap.cloud.service` (`sapcaptmdispatchcockpit.service`) to both manifests, the `srv-api` destination to the app deployer, and the destinations module (HTML5 repo host and XSUAA `OAuth2UserTokenExchange`). Change its `content.instance` to `content.subaccount`, because Work Zone's HTML5 Apps provider only reads subaccount destinations; `existing_destinations_policy: update` only touches these two. `S4_SANDBOX` is not touched.
 - [x] Give each app its own `crossNavigation` inbound with a title, a subtitle (`flpSubtitle` in i18n) and an icon: `FreightOrder-dispatch` (Dispatch Cockpit) and `FreightTender-quote` (Tender Desk). The generator gave both apps the same `tender-desk-display` intent, which would have clashed.
 - [x] Make the `dataSources` URIs relative (`odata/v4/...`) so that they resolve under the managed approuter. The root `server.js` strips the `/tm.dispatch.<app>` prefix so local `cds watch` still works.
 - [ ] Redeploy (`mbt build`, `cf deploy …`), then check that both apps are listed under **HTML5 → Application Repository** in the BTP cockpit.

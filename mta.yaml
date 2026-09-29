@@ -136,7 +136,7 @@ modules:
       no-source: true
     parameters:
       content:
-        instance:
+        subaccount: # Work Zone's HTML5 Apps provider only reads subaccount-level destinations
           existing_destinations_policy: update
           destinations:
             - Name: sap-cap-tm-dispatch-cockpit-html5-repository
