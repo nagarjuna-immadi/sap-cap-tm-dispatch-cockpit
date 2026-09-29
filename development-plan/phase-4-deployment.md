@@ -6,8 +6,8 @@
 
 ## 4.1 Hybrid
 
-- [ ] Put `[hybrid]` credentials in `package.json` for each TM API that phase 0 marked "Yes": the sandbox base URL plus the path. The `APIKey` header comes from a git-ignored `.env` (`cds.requires.CE_FREIGHTORDER_0001.credentials.headers.APIKey=…`), or from `cds bind` to the destination.
-- [ ] Run `cds watch --profile hybrid`. Compare real payloads with the mocks, then fix field mappings, `$select` lists and date and time zone handling.
+- [x] Put `[hybrid]` credentials in `package.json` for each TM API that phase 0 marked "Yes": the sandbox base URL plus the path. The `APIKey` header comes from a git-ignored `.env`, one line per service and scoped to the profile (`cds.requires.CE_FREIGHTORDER_0001.[hybrid].credentials.headers.APIKey=…`) so that `cds watch` without a profile keeps mocking. `cds bind` to the destination is the alternative.
+- [x] Run `cds watch --profile hybrid`. Compare real payloads with the mocks, then fix field mappings, `$select` lists and date and time zone handling.
 - [ ] Check the payload size and speed with `$top=50`. Stages and items are only expanded on the object page.
 
 ## 4.2 Production configuration

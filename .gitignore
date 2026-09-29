@@ -11,6 +11,7 @@ gen/
 # Secrets — never commit the Hub API key
 .env
 .env.*
+!.env.example
 default-env.json
 *-key.json
 

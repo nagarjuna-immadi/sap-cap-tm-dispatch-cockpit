@@ -18,6 +18,7 @@
   "scripts": {
     "start": "cds-serve",
     "watch": "cds watch",
+    "watch-hybrid": "cds watch --profile hybrid",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "watch-dispatch-cockpit": "cds watch --open tm.dispatch.dispatchcockpit/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-tender-desk": "cds watch --open tm.dispatch.tenderdesk/index.html?sap-ui-xx-viewCache=false --livereload false"
@@ -27,15 +28,33 @@
     "requires": {
       "CE_FREIGHTBOOKING_0001": {
         "kind": "odata",
-        "model": "srv/external/CE_FREIGHTBOOKING_0001"
+        "model": "srv/external/CE_FREIGHTBOOKING_0001",
+        "max_get_url_length": 8192,
+        "[hybrid]": {
+          "credentials": {
+            "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata4/sap/api_freightbooking/srvd_a2x/sap/freightbooking/0001"
+          }
+        }
       },
       "CE_FREIGHTORDER_0001": {
         "kind": "odata",
-        "model": "srv/external/CE_FREIGHTORDER_0001"
+        "model": "srv/external/CE_FREIGHTORDER_0001",
+        "max_get_url_length": 8192,
+        "[hybrid]": {
+          "credentials": {
+            "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata4/sap/api_freightorder/srvd_a2x/sap/freightorder/0001"
+          }
+        }
       },
       "CE_FREIGHTUNIT_0001": {
         "kind": "odata",
-        "model": "srv/external/CE_FREIGHTUNIT_0001"
+        "model": "srv/external/CE_FREIGHTUNIT_0001",
+        "max_get_url_length": 8192,
+        "[hybrid]": {
+          "credentials": {
+            "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata4/sap/api_freightunit/srvd_a2x/sap/freightunit/0001"
+          }
+        }
       },
       "[production]": {
         "auth": "xsuaa"
