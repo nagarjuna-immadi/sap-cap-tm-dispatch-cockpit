@@ -53,7 +53,7 @@ export const buildRoundAggregateQuery = ids =>
       'parent.roundNumber as roundNumber',
       'parent.deadline as deadline',
       'parent.closed as closed',
-      `count(case when ${quoted} then 1 end) as quoteCount`,
+      `count(case when ${quoted} then ID end) as quoteCount`,
       `min(case when ${quoted} then price end) as bestQuote`,
       `min(case when ${quoted} then currency_code end) as minCurrency`,
       `max(case when ${quoted} then currency_code end) as maxCurrency`,
