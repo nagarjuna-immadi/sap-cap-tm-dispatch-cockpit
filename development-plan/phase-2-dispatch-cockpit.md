@@ -4,9 +4,9 @@
 
 **Goal:** the full tender → quote → award flow works in the UI locally.
 
-- [ ] Generate a Fiori elements V4 **List Report + Object Page** on `DispatchService.FreightOrders` in `app/dispatch-cockpit/` (Fiori tools generator).
-- [ ] `app/dispatch-cockpit/annotations.cds`:
-  - `SelectionFields`: source, destination, pick-up date, dispatch status, mode of transport, `deadlineExpired`.
+- [x] Generate a Fiori elements V4 **List Report + Object Page** on `DispatchService.FreightOrders` in `app/dispatch-cockpit/` (Fiori tools generator).
+- [x] `app/dispatch-cockpit/annotations.cds` (object page split into freight order → Dispatch → tender round pages, and `startTender`/`cancelTender` moved to `FreightOrders`; see blueprint §5 and §7):
+  - `SelectionFields`: source, destination, pick-up date, dispatch status, mode of transport, `deadlineExpired`. **Open:** source, destination and pick-up date are derived from the stops and not filterable yet; they need a stop filter in the `FreightOrders` READ handler.
   - `LineItem`: order, lane, dates, status with criticality, best quote, quote count, deadline. Toolbar buttons *Start Tender* and *Cancel Tender* use `DataFieldForAction`.
   - `HeaderInfo` / `HeaderFacets`: ID, lane, dates, status, awarded carrier and price.
   - Facets: TM Data (stages, weight/volume, status), Freight Units, Tender Rounds (offers table with the *Award* inline action), Exceptions, Notes.

@@ -183,10 +183,10 @@ Remote entities, imported from EDMX (exact names come from the metadata): `Freig
 | `Dispatch` (draft-enabled) | Local `FreightOrderDispatch` | Created lazily on first open of a freight order |
 | `FreightUnits` | Remote Freight Unit | Read-only facet: what is being moved |
 | `Carriers` (read-only) | Local `Carriers` | Value help, filtered to `active = true`. Remote Business Partner only on a real tenant (see section 2) |
-| action `startTender(mode, deadline, carriers[])` | Local | NEW → TENDERING; creates round *n+1* with one `INVITED` offer per carrier |
+| action `startTender(mode, deadline, carriers[])` | Local | NEW → TENDERING; creates round *n+1* with one `INVITED` offer per carrier. Bound to `FreightOrders` (not `Dispatch`) so the list report toolbar can offer it; creates the dispatch if the order was never opened |
 | action `award(offerId)` | Local | **Rules:** the offer must be `QUOTED`; its round must be open; in `BROADCAST` mode the deadline must have passed. Sets the offer `WON`, quoted siblings `LOST`, unanswered (`INVITED`) siblings `EXPIRED`, closes the round, and sets the dispatch `AWARDED` with price, carrier, user and timestamp. Bound to the offer, so it appears on the offer row |
 | action `closeRound()` | Local | Closes the round and expires every offer still `INVITED` |
-| action `cancelTender(reason)` | Local | Any status → `FAILED`, with a mandatory note. Closes an open round, so carriers can no longer quote |
+| action `cancelTender(reason)` | Local | Any status → `FAILED`, with a mandatory note. Closes an open round, so carriers can no longer quote. Bound to `FreightOrders`, like `startTender` |
 | action `reportException(type, reason, minutes)` | Local | Appends an `ExecutionEvents` row |
 
 ### `TenderService` (`/odata/v4/tender`) – role `CarrierDesk`
@@ -237,13 +237,16 @@ Aggregated views: awards per carrier, average quotes per round, savings (first q
 ### App 1 – Dispatch Cockpit (List Report + Object Page, Fiori elements V4)
 
 - **List Report:** filters for source and destination location, pick-up date, dispatch status, mode of transport and "Deadline expired". Columns: freight order, lane, dates, dispatch status (criticality), best quote, number of quotes, deadline. Toolbar: *Start Tender*, *Cancel Tender*.
-- **Object Page facets:**
-  - Header: freight order ID, lane, pick-up and delivery dates, dispatch status, awarded carrier and price.
-  - "TM Data": stages, weight and volume, status from the Freight Order API.
+- **Freight order Object Page** (read-only, TM data):
+  - Header: freight order ID, lane, pick-up and delivery dates, dispatch status, awarded carrier and price. Actions: *Start Tender*, *Cancel Tender*, *Open Tender*.
+  - "TM Data": status, stops, weight and volume (items) from the Freight Order API.
   - "Freight Units": table from the Freight Unit API.
-  - "Tender Rounds": rounds with their offers; *Award* sits on the offer row.
+  - "Tender": dispatch status, deadline, best quote, number of quotes.
+- **Dispatch Object Page** (draft), opened with *Open Tender*. It is a top-level route on `Dispatch`, not a sub-page of the freight order: `FreightOrders` is remote and not draft-enabled, so the local compositions cannot be read or edited through `FreightOrders('…')/dispatch`. *Open Tender* is a small TypeScript custom action (`webapp/ext/controller/OpenTender.ts`).
+  - Header: dispatch status, deadline, award. Actions: *Close Round*, *Report Exception*.
+  - "Tender Rounds": latest first; a row opens the round page, whose offers table has *Award* on each row.
   - "Exceptions": execution events, editable (draft).
-  - "Notes".
+  - "Notes": editable (draft).
 
 ### App 2 – Tender Desk (List Report + Object Page)
 

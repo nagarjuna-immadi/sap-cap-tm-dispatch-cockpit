@@ -92,6 +92,16 @@
           "pattern": "FreightOrders({key}):?query:",
           "name": "FreightOrdersObjectPage",
           "target": "FreightOrdersObjectPage"
+        },
+        {
+          "pattern": "Dispatch({key}):?query:",
+          "name": "DispatchObjectPage",
+          "target": "DispatchObjectPage"
+        },
+        {
+          "pattern": "Dispatch({key})/rounds({key2}):?query:",
+          "name": "TenderRoundsObjectPage",
+          "target": "TenderRoundsObjectPage"
         }
       ],
       "targets": {
@@ -116,7 +126,8 @@
                     "type": "ResponsiveTable"
                   }
                 }
-              }
+              },
+              "initialLoad": "Enabled"
             }
           }
         },
@@ -127,7 +138,48 @@
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/FreightOrders"
+              "contextPath": "/FreightOrders",
+              "content": {
+                "header": {
+                  "actions": {
+                    "openTender": {
+                      "press": "tm.dispatch.dispatchcockpit.ext.controller.OpenTender.open",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "{i18n>openTender}"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "DispatchObjectPage": {
+          "type": "Component",
+          "id": "DispatchObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/Dispatch",
+              "navigation": {
+                "rounds": {
+                  "detail": {
+                    "route": "TenderRoundsObjectPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "TenderRoundsObjectPage": {
+          "type": "Component",
+          "id": "TenderRoundsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/Dispatch/rounds"
             }
           }
         }

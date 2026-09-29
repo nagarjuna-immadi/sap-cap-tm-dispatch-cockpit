@@ -35,9 +35,9 @@ Authorization: {{auth}}
 
 @dispatchKey = ID={{openOrder.response.body.dispatch.ID}},IsActiveEntity=true
 
-### Start tender: round n+1 with one INVITED offer per carrier. PEER can be awarded
+### Start tender (bound to the freight order): round n+1 with one INVITED offer per carrier. PEER can be awarded
 ### before the deadline; with BROADCAST, award only after it has passed.
-POST {{dispatch}}/Dispatch({{dispatchKey}})/DispatchService.startTender
+POST {{dispatch}}/FreightOrders('{{order}}')/DispatchService.startTender
 Authorization: {{auth}}
 Content-Type: application/json
 
@@ -81,7 +81,7 @@ Content-Type: application/json
 { "type": "DELAY", "reason": "TRAFFIC", "minutes": 45 }
 
 ### Cancel the tender: FAILED, closes an open round, adds a note (reason is mandatory)
-POST {{dispatch}}/Dispatch({{dispatchKey}})/DispatchService.cancelTender
+POST {{dispatch}}/FreightOrders('{{order}}')/DispatchService.cancelTender
 Authorization: {{auth}}
 Content-Type: application/json
 

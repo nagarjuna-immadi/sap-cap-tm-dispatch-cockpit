@@ -5,7 +5,8 @@
  *   database. List reads pass $filter/$top/$skip/$orderby through; filters on local
  *   elements are resolved to freight order numbers first (local-filter.js, §12). Each
  *   page is then enriched with two local queries (enrich.js).
- * - The single read of a freight order lazily creates its FreightOrderDispatch (NEW).
+ * - The single read of a freight order lazily creates its FreightOrderDispatch (NEW), and
+ *   so do startTender / cancelTender, which are bound to FreightOrders for the list toolbar.
  * - Actions work on the active Dispatch only, check award-rules.js before any write, lock
  *   the dispatch row, and report violations with req.error. TM stays read-only.
  */
@@ -128,9 +129,9 @@ export default class DispatchService extends cds.ApplicationService {
 
     // --- actions --------------------------------------------------------------------
 
-    this.on('startTender', Dispatch, req => this.onStartTender(req))
+    this.on('startTender', FreightOrders, async req => this.onStartTender(req, await this.dispatchOf(req)))
+    this.on('cancelTender', FreightOrders, async req => this.onCancelTender(req, await this.dispatchOf(req)))
     this.on('closeRound', Dispatch, req => this.onCloseRound(req))
-    this.on('cancelTender', Dispatch, req => this.onCancelTender(req))
     this.on('reportException', Dispatch, req => this.onReportException(req))
     this.on('award', CarrierOffers, req => this.onAward(req))
 
@@ -170,9 +171,7 @@ export default class DispatchService extends cds.ApplicationService {
 
   async readFreightOrder(req, id) {
     const now = new Date()
-    const row = await tm.readFreightOrder(id)
-    if (!row || row.Carrier !== '') return req.reject(404, `Freight order ${id} not found or already assigned to a carrier`)
-    await this.ensureDispatch(id)
+    const { row } = await this.openFreightOrder(req, id)
     await this.enrichPage(req, [row], now)
     const units = expandOf(req.query, 'freightUnits')
     if (units) row.freightUnits = (await tm.readFreightUnits(id)).map(u => ({ ...u, freightOrderId: id }))
@@ -207,15 +206,33 @@ export default class DispatchService extends cds.ApplicationService {
     return rows.map(r => ({ id: r.TransportationOrder, ...r }))
   }
 
-  /** Creates the NEW dispatch of a freight order on its first open; tolerates a concurrent open. */
+  /** The TM freight order, if it is still to tender; ensures its dispatch exists. */
+  async openFreightOrder(req, id) {
+    const row = await tm.readFreightOrder(id)
+    if (!row || row.Carrier !== '') return req.reject(404, `Freight order ${id} not found or already assigned to a carrier`)
+    return { row, dispatchId: await this.ensureDispatch(id) }
+  }
+
+  /** The dispatch ID for an action bound to FreightOrders. */
+  async dispatchOf(req) {
+    const { dispatchId } = await this.openFreightOrder(req, keyValue(req.params.at(-1), 'TransportationOrder'))
+    return dispatchId
+  }
+
+  /**
+   * The ID of the dispatch of a freight order, created (NEW) on its first open;
+   * tolerates a concurrent open.
+   */
   async ensureDispatch(freightOrderId) {
     const exists = () => SELECT.one.from(DB.Dispatch).columns('ID').where({ freightOrderId })
-    if (await exists()) return
+    const found = await exists()
+    if (found) return found.ID
     try {
       await INSERT.into(DB.Dispatch).entries({ freightOrderId, dispatchStatus_code: 'NEW' })
     } catch (e) {
       if (!(await exists())) throw e   // not a lost race on the unique freightOrderId
     }
+    return (await exists()).ID
   }
 
   // --- FreightUnits -----------------------------------------------------------------
@@ -274,8 +291,7 @@ export default class DispatchService extends cds.ApplicationService {
     return this.run(SELECT.one.from(this.entities.Dispatch).where({ ID, IsActiveEntity: true }))
   }
 
-  async onStartTender(req) {
-    const ID = keyValue(req.params.at(-1), 'ID')
+  async onStartTender(req, ID) {
     const dispatch = await this.lockDispatch(req, ID)
     const { mode, deadline } = req.data
     const carriers = (req.data.carriers ?? []).map(c => (typeof c === 'string' ? c.trim() : c))
@@ -297,7 +313,6 @@ export default class DispatchService extends cds.ApplicationService {
       offers: carriers.map(carrierId => ({ carrierId, carrierName: active.get(carrierId), status_code: 'INVITED' })),
     })
     await UPDATE(DB.Dispatch, ID).set({ dispatchStatus_code: 'TENDERING', quoteDeadline })
-    return this.readDispatch(ID)
   }
 
   async onAward(req) {
@@ -336,15 +351,13 @@ export default class DispatchService extends cds.ApplicationService {
     return this.readDispatch(ID)
   }
 
-  async onCancelTender(req) {
-    const ID = keyValue(req.params.at(-1), 'ID')
+  async onCancelTender(req, ID) {
     const dispatch = await this.lockDispatch(req, ID)
     const { reason } = req.data
     if (!passes(req, rules.canCancel(dispatch, reason))) return
     for (const round of dispatch.rounds.filter(r => !r.closed)) await this.closeOpenRound(round)
     await UPDATE(DB.Dispatch, ID).set({ dispatchStatus_code: 'FAILED' })
     await INSERT.into(DB.Notes).entries({ parent_ID: ID, text: `Tender cancelled: ${reason.trim()}` })
-    return this.readDispatch(ID)
   }
 
   async onReportException(req) {

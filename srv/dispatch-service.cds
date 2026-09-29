@@ -61,6 +61,15 @@ service DispatchService {
         virtual deadlineExpired           : Boolean,
         dispatch     : Association to one Dispatch on dispatch.freightOrderId = $self.TransportationOrder,
         freightUnits : Association to many FreightUnits on freightUnits.freightOrderId = $self.TransportationOrder,
+  } actions {
+    // Bound here, not on Dispatch, so the list report can offer them in its toolbar;
+    // they create the dispatch if the order was never opened. Writes stay local.
+    action startTender(
+      mode     : String(10) @mandatory,
+      deadline : Timestamp  @mandatory,
+      carriers : many String(10)
+    );
+    action cancelTender(reason : String(1000) @mandatory);
   };
 
   @readonly
@@ -143,13 +152,7 @@ service DispatchService {
   @Capabilities.InsertRestrictions.Insertable: false
   @Capabilities.DeleteRestrictions.Deletable: false
   entity Dispatch as projection on db.FreightOrderDispatch actions {
-    action startTender(
-      mode     : String(10) @mandatory,
-      deadline : Timestamp  @mandatory,
-      carriers : many String(10)
-    ) returns Dispatch;
     action closeRound() returns Dispatch;
-    action cancelTender(reason : String(1000)) returns Dispatch;
     action reportException(
       type    : String(12) @mandatory,
       reason  : String(10),
