@@ -18,16 +18,19 @@ This phase does not depend on phase 5. It can be built before or after it.
 
 ## 6.0 Decisions and prerequisites
 
-- [ ] **LLM account:** create an Anthropic API key (console.anthropic.com) and set a monthly spend limit there. Pick the models: `claude-haiku-4-5-20251001` for development (cheap) and `claude-sonnet-5-5` for the cloud.
-- [ ] **SAP API Policy (open decision 4):** the CAP agents docs say agents are for *custom* CAP services, **not** a path for agentic access to SAP application APIs (SAP API Policy §2.2.2). `DispatchService.FreightOrders` is a projection straight onto `CE_FREIGHTORDER_0001`. So the agent services below expose **no generic TM entity**: they expose local tender data plus a small, fixed freight order context (ID, lane, dates, dispatch status). Confirm this boundary before building. It also matches "TM is read-only" (§1).
-- [ ] **Trial quota:** the plugin docs suggest 1024M for the CAP module (LangGraph and the MCP SDK). Check the free memory with `cf org <org>`. Plan on 512M first and raise it if the app gets OOM-killed.
+- [x] **LLM account:** create an Anthropic API key (console.anthropic.com) and set a monthly spend limit there. Pick the models: `claude-haiku-4-5-20251001` for development (cheap) and `claude-sonnet-5-5` for the cloud.
+- [x] **SAP API Policy (open decision 4):** the CAP agents docs say agents are for *custom* CAP services, **not** a path for agentic access to SAP application APIs (SAP API Policy §2.2.2). `DispatchService.FreightOrders` is a projection straight onto `CE_FREIGHTORDER_0001`. So the agent services below expose **no generic TM entity**: they expose local tender data plus a small, fixed freight order context (ID, lane, dates, dispatch status). Confirm this boundary before building. It also matches "TM is read-only" (§1). §2.2.2 does not say how far removed from the API an agent must be, and an agent tool that triggers a TM read is still a gray area. So also pick the source of the freight order context: (a) a live TM read in our code with a fixed `$select`, where LLM input never reaches `$filter`/`$expand`, or (b) the strictest reading, a local snapshot of those few fields on `FreightOrderDispatch` (written when a tender starts), so agent tool calls trigger no TM call at all.
+- [x] **Trial quota:** the plugin docs suggest 1024M for the CAP module (LangGraph and the MCP SDK). Checked with `cf org-quota` and `cf apps`: the org quota is 4G, and only `-srv` (256M) and the approuter (256M) run; stopped apps (`-db-deployer`, `incident-management-*`) do not count. **Decision: raise `-srv` to 1024M** in 6.6. That gives 1280M running plus staging headroom during `cf deploy`, and still over 2G free.
 
 ## 6.1 Plugins and LLM configuration
 
-- [ ] `npm add @cap-js/mcp @cap-js/agents`. Check that `cds watch` still serves both OData services and that `npm test` stays green.
-- [ ] In `package.json` → `cds.requires.llm`:
+- [x] `npm add @cap-js/mcp @cap-js/agents`. Check that `cds watch` still serves both OData services and that `npm test` stays green.
+- [x] In `package.json` → `cds.requires.llm`:
   - `[development]`: `{ "kind": "anthropic", "model": "claude-haiku-4-5-20251001" }`. The key comes from `ANTHROPIC_API_KEY` in the git-ignored `.env`. Do **not** rely on the `auto` kind reading `~/.claude/settings.json`, because it would hide config outside the repo.
-  - `[test]`: `"mock"`, so that `npm test` never calls the API and needs no key.
+  - `[hybrid]`: same as `[development]`, because the plugin defaults `[hybrid]` to `aicore`, which trial does not have.
+  - `[test]`: `{ "kind": "llm-mock" }`, so that `npm test` never calls the API and needs no key. (The plugin registers the mock kind as `llm-mock`; a bare `"mock"` does not resolve.)
+  - The profiles sit at the `cds.requires` level (`"[development]": { "llm": … }`), not inside `llm`. Profile blocks inside an `llm` entry without a top-level `kind` are not resolved, and a top-level `kind` would pin `impl` to that kind in every profile.
+  - Even with `kind: "anthropic"`, the plugin reads `~/.claude/settings.json` and the OpenCode config unless `ANTHROPIC_BASE_URL` is set. So `.env.example` sets `ANTHROPIC_BASE_URL=https://api.anthropic.com` next to the key.
   - `[production]`: `{ "kind": "anthropic", "model": "claude-sonnet-5-5", "vcap": { "name": "sap-cap-tm-dispatch-cockpit-llm" } }`. The credentials (`apiKey`) come from a user-provided service instance (6.6), so the key never goes into the repo or the MTA.
 - [ ] In `package.json` → `cds.mcp`: leave `autowire` at its default (on). On `cds watch` in the development profile it registers the MCP servers in `~/.claude.json` and `~/.config/opencode/opencode.json`; the user accepted this exception to the repo-only rule. Set `"prefix": true` (tool names like `DispatchAgentService-call` do not collide) and `"per_action_tool": true` (one tool per action gives the LLM clearer schemas).
 - [ ] In `cds.agents.quotas`: `maxTasksPerHour: 30`, `maxConcurrentTasksPerUser: 2`, `maxIncomingMessageLength: 4000`, `maxLLMCallTimeout: 60s`. This caps the API cost on a demo tenant.
@@ -77,7 +80,7 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 
 ## 6.6 Deployment (commands run by the user)
 
-- [ ] `mta.yaml`: add the `assistant` html5 module and its zip to the app deployer. Raise the `-srv` memory (512M, see 6.0). Add the resource `sap-cap-tm-dispatch-cockpit-llm` (`org.cloudfoundry.existing-service`) and require it in `-srv`.
+- [ ] `mta.yaml`: add the `assistant` html5 module and its zip to the app deployer. Raise the `-srv` memory to 1024M (see 6.0). Add the resource `sap-cap-tm-dispatch-cockpit-llm` (`org.cloudfoundry.existing-service`) and require it in `-srv`.
 - [ ] Commands for the user, in order:
   1. `cf create-user-provided-service sap-cap-tm-dispatch-cockpit-llm -p '{"apiKey":"<anthropic key>"}'`: creates the key holder once. It survives redeploys and is never in git.
   2. `mbt build`

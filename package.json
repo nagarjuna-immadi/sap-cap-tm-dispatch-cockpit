@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
+    "@cap-js/agents": "^0.9.7",
     "@cap-js/hana": "^3",
+    "@cap-js/mcp": "^1.5.0",
     "@sap-cloud-sdk/connectivity": "^4",
     "@sap-cloud-sdk/http-client": "^4",
     "@sap-cloud-sdk/resilience": "^4",
@@ -76,8 +78,32 @@
           }
         }
       },
+      "[development]": {
+        "llm": {
+          "kind": "anthropic",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      },
+      "[hybrid]": {
+        "llm": {
+          "kind": "anthropic",
+          "model": "claude-haiku-4-5-20251001"
+        }
+      },
+      "[test]": {
+        "llm": {
+          "kind": "llm-mock"
+        }
+      },
       "[production]": {
-        "auth": "xsuaa"
+        "auth": "xsuaa",
+        "llm": {
+          "kind": "anthropic",
+          "model": "claude-sonnet-5-5",
+          "vcap": {
+            "name": "sap-cap-tm-dispatch-cockpit-llm"
+          }
+        }
       },
       "destinations": true,
       "html5-repo": true,

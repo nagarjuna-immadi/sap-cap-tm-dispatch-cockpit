@@ -41,4 +41,4 @@ Run all tests with `npx jest`. Run a single test with `npx jest test/<file>.test
 | 1 | Behaviour if `CE_FREIGHTORDER_0001` has no usable sandbox data (keep mocks on BTP, or use seed data) | Phase 0.1 |
 | 2 | Collection parameter vs. `inviteCarriers` fallback for `startTender` | Phase 2 |
 | 3 | Whether `closeRound` should also run automatically when a BROADCAST deadline passes and all offers have responded | Phase 1 |
-| 4 | SAP API Policy boundary: agent/MCP services expose local tender data plus a fixed freight order context, never a generic TM entity | Phase 6.0 |
+| 4 | SAP API Policy boundary: agent/MCP services expose local tender data plus a fixed freight order context, never a generic TM entity. Also decide the source of that context: a live TM read with a fixed `$select` (LLM input never reaches `$filter`/`$expand`), or the strictest option, a local snapshot so agent tool calls trigger no TM call at all | Phase 6.0 |
