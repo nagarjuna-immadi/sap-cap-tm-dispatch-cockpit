@@ -1,0 +1,32 @@
+{
+  "generationParameters": {
+    "generationDate": "Tue Sep 29 2026 09:40:29 GMT+0000 (Coordinated Universal Time)",
+    "generatorPlatform": "SAP Business Application Studio",
+    "serviceType": "Local CAP",
+    "metadataFilename": "",
+    "serviceUrl": "http://localhost:4004/odata/v4/dispatch/",
+    "appName": "dispatch-cockpit",
+    "appTitle": "Dispatch Cockpit",
+    "appDescription": "An SAP Fiori application.",
+    "appNamespace": "tm.dispatch",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.152.0",
+    "enableEslint": true,
+    "enableTypeScript": true,
+    "showMockDataInfo": false,
+    "generatorVersion": "1.33.0",
+    "template": "List Report Page V4",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [
+      {
+        "type": "Main Entity",
+        "value": "FreightOrders"
+      },
+      {
+        "type": "Navigation Entity",
+        "value": "None"
+      }
+    ],
+    "launchText": "To launch the generated app, start your CAP project:  and navigate to the following location in your browser:\n\nhttp://localhost:4004/tm.dispatch.dispatchcockpit/index.html"
+  }
+}
