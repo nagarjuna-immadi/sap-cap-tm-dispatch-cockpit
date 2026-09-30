@@ -18,7 +18,7 @@ modules:
     parameters:
       instances: 1
       buildpack: nodejs_buildpack
-      memory: 256M
+      memory: 1024M # LangGraph + MCP SDK (@cap-js/agents, @cap-js/mcp)
     build-parameters:
       builder: npm-ci
     provides:
@@ -29,6 +29,7 @@ modules:
       - name: sap-cap-tm-dispatch-cockpit-auth
       - name: sap-cap-tm-dispatch-cockpit-db
       - name: sap-cap-tm-dispatch-cockpit-destination
+      - name: sap-cap-tm-dispatch-cockpit-llm
 
   - name: sap-cap-tm-dispatch-cockpit-db-deployer
     type: hdb
@@ -52,6 +53,10 @@ modules:
         - name: sapcaptmdispatchcockpittenderdesk
           artifacts:
             - tender-desk.zip
+          target-path: app/
+        - name: sapcaptmdispatchcockpitassistant
+          artifacts:
+            - assistant.zip
           target-path: app/
     requires:
       - name: sap-cap-tm-dispatch-cockpit-auth
@@ -86,6 +91,17 @@ modules:
   - name: sapcaptmdispatchcockpittenderdesk
     type: html5
     path: app/tender-desk
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: sapcaptmdispatchcockpitassistant
+    type: html5
+    path: app/assistant
     build-parameters:
       build-result: dist
       builder: custom
@@ -190,3 +206,5 @@ resources:
     parameters:
       service: html5-apps-repo
       service-plan: app-runtime
+  - name: sap-cap-tm-dispatch-cockpit-llm # user-provided, holds the Anthropic apiKey (created once with cf cups)
+    type: org.cloudfoundry.existing-service

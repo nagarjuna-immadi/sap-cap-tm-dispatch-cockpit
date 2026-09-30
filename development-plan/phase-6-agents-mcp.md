@@ -137,8 +137,8 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 
 ## 6.6 Deployment (commands run by the user)
 
-- [ ] Check that the persona folders reach the deployed app: after the build, `gen/srv/srv/agents/<name>/` must contain `AGENTS.md` and `skills/`, and the plugin must still resolve the folder from the compiled model (it looks for `AGENTS.md` next to the `.cds` file, whose location it takes from the service's `@source` / `$location`). The handlers must be there too (`gen/srv/srv/agents/<name>/<name>-agent-service.js`). If the folder is not resolved, set `@agent.directory` on the services, or copy the folders in a build step.
-- [ ] `mta.yaml`: add the `assistant` html5 module and its zip to the app deployer. Raise the `-srv` memory to 1024M (see 6.0). Add the resource `sap-cap-tm-dispatch-cockpit-llm` (`org.cloudfoundry.existing-service`) and require it in `-srv`.
+- [x] Check that the persona folders reach the deployed app: after the build, `gen/srv/srv/agents/<name>/` must contain `AGENTS.md` and `skills/`, and the plugin must still resolve the folder from the compiled model (it looks for `AGENTS.md` next to the `.cds` file, whose location it takes from the service's `@source` / `$location`). The handlers must be there too (`gen/srv/srv/agents/<name>/<name>-agent-service.js`). If the folder is not resolved, set `@agent.directory` on the services, or copy the folders in a build step.
+- [x] `mta.yaml`: add the `assistant` html5 module and its zip to the app deployer. Raise the `-srv` memory to 1024M (see 6.0). Add the resource `sap-cap-tm-dispatch-cockpit-llm` (`org.cloudfoundry.existing-service`) and require it in `-srv`.
 - [ ] Commands for the user, in order:
   1. `cf create-user-provided-service sap-cap-tm-dispatch-cockpit-llm -p '{"apiKey":"<anthropic key>"}'`: creates the key holder once. It survives redeploys and is never in git.
   2. `mbt build`
