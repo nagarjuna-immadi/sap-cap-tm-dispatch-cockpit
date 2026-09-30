@@ -139,12 +139,12 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 
 - [x] Check that the persona folders reach the deployed app: after the build, `gen/srv/srv/agents/<name>/` must contain `AGENTS.md` and `skills/`, and the plugin must still resolve the folder from the compiled model (it looks for `AGENTS.md` next to the `.cds` file, whose location it takes from the service's `@source` / `$location`). The handlers must be there too (`gen/srv/srv/agents/<name>/<name>-agent-service.js`). If the folder is not resolved, set `@agent.directory` on the services, or copy the folders in a build step.
 - [x] `mta.yaml`: add the `assistant` html5 module and its zip to the app deployer. Raise the `-srv` memory to 1024M (see 6.0). Add the resource `sap-cap-tm-dispatch-cockpit-llm` (`org.cloudfoundry.existing-service`) and require it in `-srv`.
-- [ ] Commands for the user, in order:
+- [x] Commands for the user, in order:
   1. `cf create-user-provided-service sap-cap-tm-dispatch-cockpit-llm -p '{"apiKey":"<anthropic key>"}'`: creates the key holder once. It survives redeploys and is never in git.
   2. `mbt build`
   3. `cf deploy mta_archives/sap-cap-tm-dispatch-cockpit_1.0.0.mtar`
-- [ ] Work Zone: refresh the HTML5 Apps provider, add **TM Assistant** to the `TM Dispatch` group and the Everyone role, then check it in the site.
-- [ ] Check that the approuter passes SSE through without buffering (the answer should appear gradually). If it does not, the app falls back to `message/send`.
-  - **First deploy: the answer appeared at once.** The approuter (standalone and managed) gzips `text/event-stream`, and the gzip stream holds the events back until the response ends. The plugin sends only `Cache-Control: no-cache`, so the root `server.js` now sets `no-cache, no-transform` on SSE responses under `/a2a/`, and the approuter's `compression` middleware skips them. Reproduced against the approuter's own middleware: without `no-transform`, three events one second apart arrived together at 3 s; with it, at 1, 2 and 3 s. Still to check in the cloud after a redeploy.
+- [x] Work Zone: refresh the HTML5 Apps provider, add **TM Assistant** to the `TM Dispatch` group and the Everyone role, then check it in the site.
+- [x] Check that the approuter passes SSE through without buffering (the answer should appear gradually). If it does not, the app falls back to `message/send`.
+  - **First deploy: the answer appeared at once.** The approuter (standalone and managed) gzips `text/event-stream`, and the gzip stream holds the events back until the response ends. The plugin sends only `Cache-Control: no-cache`, so the root `server.js` now sets `no-cache, no-transform` on SSE responses under `/a2a/`, and the approuter's `compression` middleware skips them. Reproduced against the approuter's own middleware: without `no-transform`, three events one second apart arrived together at 3 s; with it, at 1, 2 and 3 s. Confirmed in the cloud after the redeploy.
 
 **Exit criteria:** the three-step scenario from 6.4 works in the Work Zone site through **TM Assistant**. It runs as a user with `TM_Dispatcher` and, after removing that role collection and logging in again, as `TM_Carrier_Desk`. The SS user has all three collections (see `CLAUDE.local.md`). No write happens without approval, and `npm test` is green.
