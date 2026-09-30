@@ -18,6 +18,7 @@
 import cds from '@sap/cds'
 import { cached } from '../../lib/cache.js'
 import * as rules from '../../lib/award-rules.js'
+import { resolveMessages } from '../../lib/agent-errors.js'
 
 const { SELECT } = cds.ql
 
@@ -102,17 +103,8 @@ export default class DispatchAgentService extends cds.ApplicationService {
     this.on('award', req => this.onAward(req))
     this.on('reportException', req => this.onReportException(req))
 
-    // Input validation errors (@mandatory, wrong type) carry only a code; CAP adds their
-    // text in the OData error response. MCP and A2A report err.message, so resolve it
-    // here, with the parameter, or the LLM gets "undefined" and cannot correct the call.
-    this.on('error', err => {
-      for (const e of [err, ...(err.details ?? [])]) {
-        if (e.message || !e.code) continue
-        const locale = cds.context?.locale || cds.i18n.default_language
-        const text = cds.i18n.messages.at(e.code, locale, e.args) ?? e.code
-        e.message = e.target ? `${text} (${e.target})` : text
-      }
-    })
+    // validation errors carry only a code; MCP and A2A need the text (agent-errors.js)
+    this.on('error', resolveMessages)
 
     return super.init()
   }
