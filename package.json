@@ -25,7 +25,8 @@
     "watch-hybrid": "cds watch --profile hybrid",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "watch-dispatch-cockpit": "cds watch --open tm.dispatch.dispatchcockpit/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-tender-desk": "cds watch --open tm.dispatch.tenderdesk/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-tender-desk": "cds watch --open tm.dispatch.tenderdesk/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-assistant": "cds watch --open tm.dispatch.assistant/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "private": true,
   "cds": {
@@ -138,6 +139,7 @@
   ],
   "sapux": [
     "app/dispatch-cockpit",
-    "app/tender-desk"
+    "app/tender-desk",
+    "app/assistant"
   ]
 }

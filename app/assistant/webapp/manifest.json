@@ -1,0 +1,99 @@
+{
+  "_version": "1.89.0",
+  "sap.app": {
+    "id": "tm.dispatch.assistant",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "dataSources": {
+      "dispatchAgent": {
+        "uri": "a2a/dispatch-agent/",
+        "type": "JSON"
+      },
+      "tenderAgent": {
+        "uri": "a2a/tender-agent/",
+        "type": "JSON"
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "Assistant-chat": {
+          "semanticObject": "Assistant",
+          "action": "chat",
+          "title": "{{appTitle}}",
+          "subTitle": "{{flpSubtitle}}",
+          "icon": "sap-icon://discussion-2",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "sap-icon://discussion-2",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "rootView": {
+      "viewName": "tm.dispatch.assistant.view.App",
+      "type": "XML",
+      "id": "app"
+    },
+    "dependencies": {
+      "minUI5Version": "1.152.0",
+      "libs": {
+        "sap.m": {},
+        "sap.f": {},
+        "sap.ui.core": {},
+        "sap.ui.layout": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "tm.dispatch.assistant.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "sapcaptmdispatchcockpit.service"
+  }
+}

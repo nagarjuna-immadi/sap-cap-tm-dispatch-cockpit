@@ -1,0 +1,88 @@
+<mvc:View
+	controllerName="tm.dispatch.assistant.controller.App"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:f="sap.f"
+	displayBlock="true"
+	height="100%">
+	<f:DynamicPage id="page" fitContent="true" toggleHeaderOnTitleClick="false" class="sapUiNoContentPadding tmaPage">
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading>
+					<Title text="{chat>/agentName}" wrapping="true" />
+				</f:heading>
+				<f:content>
+					<SegmentedButton
+						id="agentPicker"
+						selectedKey="{chat>/agentKey}"
+						visible="{= ${chat>/agents}.length > 1 }"
+						enabled="{= !${chat>/busy} }"
+						selectionChange=".onAgentChange"
+						items="{chat>/agents}">
+						<items>
+							<SegmentedButtonItem key="{chat>key}" text="{chat>title}" />
+						</items>
+					</SegmentedButton>
+				</f:content>
+				<f:actions>
+					<Button
+						id="newConversation"
+						text="{i18n>newConversation}"
+						icon="sap-icon://add"
+						type="Transparent"
+						visible="{= ${chat>/agents}.length > 0 }"
+						enabled="{= !${chat>/busy} }"
+						press=".onNewConversation" />
+				</f:actions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<FlexBox direction="Column" height="100%" class="tmaChat">
+				<!-- one conversation container per agent is added here by the controller -->
+				<ScrollContainer id="scroller" vertical="true" horizontal="false" height="100%" class="tmaScroller">
+					<layoutData>
+						<FlexItemData growFactor="1" minHeight="0" />
+					</layoutData>
+					<BusyIndicator visible="{chat>/loading}" text="{i18n>loadingAgents}" class="sapUiLargeMargin" />
+					<IllustratedMessage
+						visible="{= !${chat>/loading} &amp;&amp; ${chat>/agents}.length === 0 }"
+						illustrationType="sapIllus-NoActivities"
+						title="{i18n>noAgentTitle}"
+						description="{chat>/noAgentText}" />
+					<VBox id="conversations" />
+				</ScrollContainer>
+				<HBox visible="{chat>/busy}" alignItems="Center" class="tmaStatus">
+					<BusyIndicator size="1rem" class="sapUiTinyMarginEnd" />
+					<Text text="{chat>/busyText}" maxLines="1" />
+				</HBox>
+				<HBox
+					visible="{= ${chat>/agents}.length > 0 }"
+					alignItems="End"
+					class="tmaComposer">
+					<TextArea
+						id="input"
+						value="{chat>/input}"
+						valueLiveUpdate="true"
+						rows="1"
+						growing="true"
+						growingMaxLines="6"
+						width="100%"
+						placeholder="{chat>/placeholder}"
+						enabled="{= !${chat>/pending} }">
+						<layoutData>
+							<FlexItemData growFactor="1" />
+						</layoutData>
+					</TextArea>
+					<Button
+						id="send"
+						class="sapUiSmallMarginBegin"
+						type="{= ${chat>/busy} ? 'Default' : 'Emphasized' }"
+						icon="{= ${chat>/busy} ? 'sap-icon://stop' : 'sap-icon://paper-plane' }"
+						text="{= ${chat>/busy} ? ${i18n>stop} : ${i18n>send} }"
+						enabled="{= ${chat>/busy} || (!${chat>/pending} &amp;&amp; ${chat>/input}.trim().length > 0) }"
+						press=".onSendPress" />
+				</HBox>
+			</FlexBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

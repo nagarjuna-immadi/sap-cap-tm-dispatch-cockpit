@@ -2,7 +2,7 @@
 
 A full-stack **SAP CAP** (Node.js) application with **SAP Fiori elements V4** UIs, deployed to an **SAP BTP trial** account. It adds a spot-tendering and carrier-scoring layer on top of the **Transportation Management (TM)** OData V4 APIs of SAP S/4HANA Cloud Public Edition, which it reads through the SAP Business Accelerator Hub sandbox.
 
-> **Status:** phases 0–4 are done. Phase 0 (setup and mocked TM services), phase 1 (domain model, tender and award rules, Dispatch service at `/odata/v4/dispatch`), phase 2 (Dispatch Cockpit app, `app/dispatch-cockpit`), phase 3 (Tender service at `/odata/v4/tender`, role restrictions, `xs-security.json`, Tender Desk app `app/tender-desk`) and phase 4 (hybrid mode against the SAP API Business Hub sandbox, BTP trial deployment via MTA, Work Zone site with both tiles) are complete. Phase 5 (extras) is next; phase 6 (agents and MCP servers) is planned. The full specification is in [`blueprint.md`](blueprint.md). Implementation follows the phases listed below.
+> **Status:** phases 0–4 are done. Phase 0 (setup and mocked TM services), phase 1 (domain model, tender and award rules, Dispatch service at `/odata/v4/dispatch`), phase 2 (Dispatch Cockpit app, `app/dispatch-cockpit`), phase 3 (Tender service at `/odata/v4/tender`, role restrictions, `xs-security.json`, Tender Desk app `app/tender-desk`) and phase 4 (hybrid mode against the SAP API Business Hub sandbox, BTP trial deployment via MTA, Work Zone site with both tiles) are complete. Phase 5 (extras) is next. Phase 6 (agents and MCP servers) is built locally: `DispatchAgentService` and `TenderAgentService` as MCP servers and A2A agents, and the TM Assistant chat app (`app/assistant`); its BTP deployment is still open. The full specification is in [`blueprint.md`](blueprint.md). Implementation follows the phases listed below.
 
 ## Why
 
@@ -95,7 +95,7 @@ Then assign the role collections `TM_Dispatcher`, `TM_Carrier_Desk` and `TM_Tran
 ## Project structure
 
 ```
-app/          Fiori apps (dispatch-cockpit, tender-desk, carrier-scorecard) + approuter
+app/          Fiori apps (dispatch-cockpit, tender-desk, carrier-scorecard), TM Assistant chat (assistant) + approuter
 db/           schema.cds + seed/code-list CSVs
 srv/          services, handlers, external/ (imported TM models + mocks), lib/award-rules.js
 test/         jest + cds.test

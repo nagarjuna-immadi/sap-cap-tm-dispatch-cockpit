@@ -1,0 +1,206 @@
+/* TM Assistant chat layout: the messages scroll, the status line and the input stay at the bottom. */
+
+/*
+ * The title row and the chat column share one gutter and one centered 60rem column, so the
+ * heading lines up with the input and "New Conversation" with the send button. DynamicPage's
+ * own title and content paddings differ per breakpoint, so both are set here.
+ */
+.tmaPage {
+	--tmaGutter: 2rem;
+	--tmaColumn: 60rem;
+}
+
+.tmaPage.sapFDynamicPage-Std-Phone {
+	--tmaGutter: 1rem;
+}
+
+.tmaPage.sapFDynamicPage .sapFDynamicPageTitleWrapper > .sapFDynamicPageTitle {
+	padding-left: var(--tmaGutter);
+	padding-right: var(--tmaGutter);
+}
+
+.tmaPage .sapFDynamicPageTitle .sapFDynamicPageTitleMain {
+	width: 100%;
+	max-width: var(--tmaColumn);
+	margin: 0 auto;
+	box-sizing: border-box;
+}
+
+.tmaPage .sapFDynamicPageTitle .sapFDynamicPageTitleActionsBar.sapMTB {
+	padding-right: 0;
+}
+
+.tmaPage.sapFDynamicPage .sapFDynamicPageContent,
+.tmaPage.sapFDynamicPage .sapFDynamicPageContentFitContainer {
+	padding: 0;
+}
+
+.tmaChat {
+	padding: 0 var(--tmaGutter);
+	box-sizing: border-box;
+}
+
+.tmaScroller {
+	min-height: 0;
+}
+
+.tmaConversation {
+	max-width: var(--tmaColumn);
+	margin: 0 auto;
+	padding: 1rem 0;
+}
+
+.tmaStatus,
+.tmaComposer {
+	max-width: var(--tmaColumn);
+	width: 100%;
+	margin: 0 auto;
+	box-sizing: border-box;
+}
+
+.tmaStatus {
+	padding: 0.25rem 0;
+	color: var(--sapContent_LabelColor);
+}
+
+.tmaComposer {
+	padding: 0.5rem 0 1rem;
+}
+
+/* Messages */
+
+.tmaBubble {
+	max-width: 85%;
+	margin: 0.375rem 0;
+	padding: 0.5rem 0.875rem;
+	border-radius: var(--sapElement_BorderCornerRadius, 0.75rem);
+	box-sizing: border-box;
+}
+
+.tmaUser {
+	background: var(--sapInformationBackgroundColor);
+	color: var(--sapTextColor);
+	white-space: pre-wrap;
+}
+
+.tmaAgent {
+	width: fit-content;
+	background: var(--sapTile_Background);
+	border: 1px solid var(--sapTile_BorderColor);
+	color: var(--sapTextColor);
+}
+
+/* An intermediate model turn (before a tool call) */
+.tmaAgent.tmaStep {
+	background: transparent;
+	border-color: transparent;
+	padding-top: 0;
+	padding-bottom: 0;
+	color: var(--sapContent_LabelColor);
+	font-size: var(--sapFontSmallSize);
+}
+
+.tmaInfo {
+	margin: 0.375rem 0;
+	color: var(--sapContent_LabelColor);
+	font-style: italic;
+}
+
+.tmaApproval {
+	max-width: 85%;
+	margin: 0.5rem 0;
+	padding: 0.75rem 1rem;
+	border: 1px solid var(--sapCriticalElementColor);
+	border-left-width: 0.25rem;
+	border-radius: var(--sapElement_BorderCornerRadius, 0.5rem);
+	background: var(--sapTile_Background);
+	box-sizing: border-box;
+}
+
+.tmaWelcome {
+	padding: 1rem 0;
+	color: var(--sapContent_LabelColor);
+}
+
+.tmaSuggestion .sapMBtnInner {
+	height: auto;
+	white-space: normal;
+	text-align: start;
+}
+
+.tmaSuggestion .sapMBtnContent {
+	white-space: normal;
+	line-height: 1.25rem;
+	padding: 0.25rem 0;
+}
+
+/* Markdown answers */
+
+.tmaMarkdown {
+	font-family: var(--sapFontFamily);
+	font-size: var(--sapFontSize);
+	line-height: 1.5;
+	overflow-x: auto;
+}
+
+.tmaMarkdown > :first-child {
+	margin-top: 0;
+}
+
+.tmaMarkdown > :last-child {
+	margin-bottom: 0;
+}
+
+.tmaMarkdown p,
+.tmaMarkdown ul,
+.tmaMarkdown ol {
+	margin: 0.375rem 0;
+}
+
+.tmaMarkdown h1,
+.tmaMarkdown h2,
+.tmaMarkdown h3,
+.tmaMarkdown h4 {
+	font-size: var(--sapFontHeader5Size);
+	margin: 0.75rem 0 0.375rem;
+}
+
+.tmaMarkdown code {
+	font-family: var(--sapFontFamilyMono, monospace);
+	background: var(--sapNeutralBackgroundColor);
+	padding: 0 0.25rem;
+	border-radius: 0.25rem;
+}
+
+.tmaMarkdown pre {
+	overflow-x: auto;
+	padding: 0.5rem;
+	background: var(--sapNeutralBackgroundColor);
+	border-radius: 0.25rem;
+}
+
+.tmaMarkdown pre code {
+	padding: 0;
+}
+
+.tmaMarkdown table {
+	border-collapse: collapse;
+	margin: 0.5rem 0;
+}
+
+.tmaMarkdown th,
+.tmaMarkdown td {
+	border: 1px solid var(--sapList_BorderColor);
+	padding: 0.25rem 0.5rem;
+	text-align: start;
+	vertical-align: top;
+}
+
+.tmaMarkdown th {
+	background: var(--sapList_HeaderBackground);
+	font-weight: bold;
+}
+
+.tmaMarkdown a {
+	color: var(--sapLinkColor);
+}
