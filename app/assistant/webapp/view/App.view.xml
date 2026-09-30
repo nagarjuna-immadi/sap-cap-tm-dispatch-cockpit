@@ -9,7 +9,15 @@
 		<f:title>
 			<f:DynamicPageTitle>
 				<f:heading>
-					<Title text="{chat>/agentName}" wrapping="true" />
+					<HBox alignItems="Center" renderType="Bare">
+						<Avatar
+							src="sap-icon://ai"
+							displayShape="Square"
+							displaySize="XS"
+							decorative="true"
+							class="tmaJoule sapUiSmallMarginEnd" />
+						<Title text="{chat>/agentName}" wrapping="true" />
+					</HBox>
 				</f:heading>
 				<f:content>
 					<SegmentedButton

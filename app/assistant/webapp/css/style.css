@@ -35,6 +35,20 @@
 	padding: 0;
 }
 
+/* Joule-style mark in front of the heading: the AI sparkle on a purple-to-magenta gradient */
+.tmaJoule.sapFAvatar {
+	flex-shrink: 0;
+	border: none;
+	border-radius: 0.5rem;
+	background: linear-gradient(135deg, #5d36ff 0%, #a100c2 60%, #e8175d 100%);
+	color: #ffffff;
+}
+
+.tmaJoule.sapFAvatar .sapUiIcon,
+.tmaJoule.sapFAvatar .sapFAvatarIcon {
+	color: #ffffff;
+}
+
 .tmaChat {
 	padding: 0 var(--tmaGutter);
 	box-sizing: border-box;
