@@ -109,7 +109,7 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 - [ ] A2A client in `webapp/model/a2a.js`: JSON-RPC `message/stream` (SSE) with a fallback to `message/send`. Keep the `contextId` per conversation. For `input-required`, render an **approval card** (action name, parameters, *Approve*/*Reject*) and resume the task with the decision.
 - [ ] Relative data source URIs (`a2a/...`), as in the other apps. Add the `/tm.dispatch.assistant` prefix to the root `server.js` for local `cds watch`, and add a `watch-assistant` npm script.
 - [ ] `manifest.json`: `sap.cloud.service: sapcaptmdispatchcockpit.service` and the inbound `Assistant-chat` (title "TM Assistant").
-- [ ] `app/router/xs-app.json`: route `^/a2a/(.*)$` → `srv-api`, `authenticationType: xsuaa`, `csrfProtection: true` (the app fetches the token first). The `/mcp` routes are **not** added to the approuter (see 6.7).
+- [x] `app/router/xs-app.json`: route `^/a2a/(.*)$` → `srv-api`, `authenticationType: xsuaa`, `csrfProtection: true` (the app fetches the token first). The `/mcp` routes are **not** added to the approuter (see 6.7).
 
 ## 6.6 Deployment (commands run by the user)
 
