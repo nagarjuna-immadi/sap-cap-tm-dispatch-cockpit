@@ -20,32 +20,6 @@
       "csrfProtection": true
     },
     {
-      "source": "^/cap-index$",
-      "target": "/",
-      "destination": "srv-api",
-      "authenticationType": "xsuaa"
-    },
-    {
-      "source": "^(/\\$fiori-preview/.*)$",
-      "target": "$1",
-      "destination": "srv-api",
-      "authenticationType": "xsuaa"
-    },
-    {
-      "source": "^/a2a/(.*)$",
-      "target": "/a2a/$1",
-      "destination": "srv-api",
-      "authenticationType": "xsuaa",
-      "csrfProtection": true
-    },
-    {
-      "source": "^/mcp/(.*)$",
-      "target": "/mcp/$1",
-      "destination": "srv-api",
-      "authenticationType": "xsuaa",
-      "csrfProtection": false
-    },
-    {
       "source": "^/user-api(.*)",
       "target": "$1",
       "service": "sap-approuter-userapi",

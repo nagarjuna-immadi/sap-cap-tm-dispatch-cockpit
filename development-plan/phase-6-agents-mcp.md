@@ -109,7 +109,7 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 - [ ] A2A client in `webapp/model/a2a.js`: JSON-RPC `message/stream` (SSE) with a fallback to `message/send`. Keep the `contextId` per conversation. For `input-required`, render an **approval card** (action name, parameters, *Approve*/*Reject*) and resume the task with the decision.
 - [ ] Relative data source URIs (`a2a/...`), as in the other apps. Add the `/tm.dispatch.assistant` prefix to the root `server.js` for local `cds watch`, and add a `watch-assistant` npm script.
 - [ ] `manifest.json`: `sap.cloud.service: sapcaptmdispatchcockpit.service` and the inbound `Assistant-chat` (title "TM Assistant").
-- [x] `app/router/xs-app.json`: route `^/a2a/(.*)$` → `srv-api`, `authenticationType: xsuaa`, `csrfProtection: true` (the app fetches the token first). Also route `^/mcp/(.*)$` → `srv-api`, `authenticationType: xsuaa`, `csrfProtection: false` (user's decision, see 6.7).
+- [ ] `app/router/xs-app.json`: route `^/a2a/(.*)$` → `srv-api`, `authenticationType: xsuaa`, `csrfProtection: true` (the app fetches the token first). The `/mcp` routes are **not** added to the approuter (see 6.7).
 
 ## 6.6 Deployment (commands run by the user)
 
@@ -129,8 +129,6 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 Required (the user's decision). External MCP clients reach the two MCP servers in the cloud and log in as the BTP user, so the same roles apply as in the Fiori apps.
 
 **Decided approach:** the clients call the **`-srv` route directly** (`https://<srv-host>/mcp/dispatch-agent`, `/mcp/tender-agent`), not the approuter. The approuter works with session cookies, while MCP clients send `Authorization: Bearer <JWT>`, which CAP validates itself. The token comes from the app's **own XSUAA instance** through authorization code + PKCE, using a fixed client (a service key), because XSUAA offers no dynamic client registration. IAS stays the fallback only if a target client cannot be configured with a fixed client ID.
-
-**Also through the approuter (user's decision):** `xs-app.json` routes `^/mcp/(.*)$` to `srv-api` (`authenticationType: xsuaa`, `csrfProtection: false`, because MCP clients never fetch a CSRF token). It serves a browser with an approuter session and clients that already hold an XSUAA bearer token. It is not the discovery path: an unauthenticated call there gets the approuter's login redirect instead of CAP's 401 with `resource_metadata`, so clients that log in via OAuth discovery keep using the `-srv` route.
 
 - [ ] **Checks before building** (they decide the details):
   - `@cap-js/mcp` 1.5.0 answers an unauthenticated call with a plain JSON 401 (`lib/index.js`), without `WWW-Authenticate: Bearer resource_metadata="…"`. MCP clients need that header (or the well-known URL) to discover the login, so the app adds it (next item).

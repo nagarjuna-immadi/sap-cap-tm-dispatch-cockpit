@@ -117,16 +117,6 @@
       "html5-repo": true,
       "workzone": true
     },
-    "server": {
-      "[production]": {
-        "index": true
-      }
-    },
-    "fiori": {
-      "[production]": {
-        "preview": true
-      }
-    },
     "mcp": {
       "prefix": true,
       "per_action_tool": true
