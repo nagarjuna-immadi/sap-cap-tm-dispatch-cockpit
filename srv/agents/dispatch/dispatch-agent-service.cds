@@ -302,7 +302,7 @@ service DispatchAgentService {
   // Each delegates to the bound DispatchService action, which checks award-rules.js and
   // writes to the local entities only; TM stays read-only. @agent.hitl pauses the agent's
   // task (input-required) until the user approves the call. It does not cover external
-  // MCP clients, which call the tool directly (development plan 6.7). Every action returns
+  // MCP clients such as Claude Code, which call the tool directly. Every action returns
   // the freight order summary, so the result of the change needs no second call.
 
   /**

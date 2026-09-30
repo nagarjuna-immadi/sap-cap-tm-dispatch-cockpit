@@ -2,7 +2,7 @@
 
 [← Development plan](README.md) · Previous: [Phase 5](phase-5-extras.md)
 
-**Goal:** a dispatcher and a carrier desk user can run the tender flow by chatting with an agent. Each agent runs on top of the existing services, under the user's own roles, and every write needs the user's explicit approval. The same capabilities are also offered as MCP servers, locally and on BTP, where external MCP clients (Claude Code, claude.ai, VS Code) log in as the BTP user. Everything runs on BTP trial **without AI Core or Joule** (blueprint §13).
+**Goal:** a dispatcher and a carrier desk user can run the tender flow by chatting with an agent. Each agent runs on top of the existing services, under the user's own roles, and every write needs the user's explicit approval. The same capabilities are also offered as MCP servers for local development (Claude Code through the plugin's autowire). External MCP clients against BTP are out of scope. Everything runs on BTP trial **without AI Core or Joule** (blueprint §13).
 
 This phase does not depend on phase 5. It can be built before or after it.
 
@@ -14,7 +14,7 @@ This phase does not depend on phase 5. It can be built before or after it.
 | Agent | [`@cap-js/agents`](https://cap.cloud.sap/docs/guides/ai/cap-agents) (official CAP plugin, `@agent`, A2A at `/a2a/<service>`) | LangGraph-based, uses the service's own MCP tools, has human-in-the-loop via `@agent.hitl`, persists conversations in the app DB, and has quotas. Node.js only, which fits this project. |
 | LLM without AI Core | `cds.requires.llm.kind: "anthropic"`, which calls the Anthropic API directly with an API key | The plugin ships an `anthropic` model adapter next to `aicore` and `mock`. It reads `apiKey`/`anthropicApiUrl` from the credentials or from `ANTHROPIC_API_KEY`. The key is billed per use, so quotas are set. |
 | Chat UI (local) | The plugin's chat preview at `/a2a/<service>/preview/`, plus Claude Code (or OpenCode) as the MCP client, registered automatically by the plugin's autowire | Needs no UI code, so the agents can be tuned before the UI exists. |
-| MCP in the cloud | External clients call `/mcp/<service>` on the `-srv` route directly with an XSUAA user token (authorization code + PKCE, a fixed client from the app's own XSUAA instance). The app publishes OAuth protected-resource metadata so clients can discover the login. | XSUAA has no dynamic client registration, and trial has no IAS in the setup. A fixed client needs no new service, and the token carries the user's role collections, so `@requires`/`@restrict` apply as in the UIs. |
+| MCP in the cloud | Not offered to external clients (dropped, the user's decision). In the cloud the agents are used through TM Assistant (A2A); `/mcp` is not routed through the approuter, and no OAuth discovery or client setup is built for it. | Not required. It would need an XSUAA login flow for MCP clients (fixed client, PKCE, protected-resource metadata) for no scenario the app needs. |
 | Chat UI (cloud) | New UI5 freestyle app **TM Assistant** (`app/assistant/`) in the Work Zone site, which calls A2A through the approuter | The preview is a dev tool. A launchpad app reuses XSUAA login, role collections and the existing Work Zone setup. |
 
 ## 6.0 Decisions and prerequisites
@@ -103,11 +103,11 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 
 ## 6.4 Local verification
 
-- [ ] Run `cds watch`. The log lists `/mcp/dispatch-agent`, `/a2a/dispatch-agent`, `/mcp/tender-agent` and `/a2a/tender-agent`.
-- [ ] `test/http/agents.http`: MCP `initialize` plus `tools/list` as `nag` and as `satish` (each only sees their own service, and the other gets 403). Also A2A `message/send` with a simple question.
-- [ ] Chat preview at `/a2a/dispatch-agent/preview/` (as `nag`) and `/a2a/tender-agent/preview/` (as `satish`).
-- [ ] After `cds watch`, check that autowire registered both MCP servers in Claude Code (`claude mcp list`) and that a tool call runs as a mocked user. If the entries lack auth for the mocked users, add the basic-auth header (`nag`/`satish`, no password) to the autowired entry.
-- [ ] Keep `npm test` green with `llm: mock`. Add no new tests except, if needed, one for the delegation from agent actions to `DispatchService` (tricky because of the user context).
+- [x] Run `cds watch`. The log lists `/mcp/dispatch-agent`, `/a2a/dispatch-agent`, `/mcp/tender-agent` and `/a2a/tender-agent`.
+- [x] `test/http/agents.http`: MCP `initialize` plus `tools/list` as `nag` and as `satish` (each only sees their own service, and the other gets 403). Also A2A `message/send` with a simple question.
+- [x] Chat preview at `/a2a/dispatch-agent/preview/` (as `nag`) and `/a2a/tender-agent/preview/` (as `satish`).
+- [x] After `cds watch`, check that autowire registered both MCP servers in Claude Code (`claude mcp list`) and that a tool call runs as a mocked user. If the entries lack auth for the mocked users, add the basic-auth header (`nag`/`satish`, no password) to the autowired entry.
+- [x] Keep `npm test` green with `llm: mock`. Add no new tests except, if needed, one for the delegation from agent actions to `DispatchService` (tricky because of the user context).
 
 **Scenario (exit check for 6.2–6.4):**
 1. `nag`: "Which freight orders from lane X still need a carrier? Start a broadcast tender on the first one to all carriers, deadline in 2 minutes." → the agent pauses for approval → approve → the round appears in the Dispatch Cockpit.
@@ -120,7 +120,7 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 - [ ] A2A client in `webapp/model/a2a.js`: JSON-RPC `message/stream` (SSE) with a fallback to `message/send`. Keep the `contextId` per conversation. For `input-required`, render an **approval card** (action name, parameters, *Approve*/*Reject*) and resume the task with the decision.
 - [ ] Relative data source URIs (`a2a/...`), as in the other apps. Add the `/tm.dispatch.assistant` prefix to the root `server.js` for local `cds watch`, and add a `watch-assistant` npm script.
 - [ ] `manifest.json`: `sap.cloud.service: sapcaptmdispatchcockpit.service` and the inbound `Assistant-chat` (title "TM Assistant").
-- [ ] `app/router/xs-app.json`: route `^/a2a/(.*)$` → `srv-api`, `authenticationType: xsuaa`, `csrfProtection: true` (the app fetches the token first). The `/mcp` routes are **not** added to the approuter (see 6.7).
+- [ ] `app/router/xs-app.json`: route `^/a2a/(.*)$` → `srv-api`, `authenticationType: xsuaa`, `csrfProtection: true` (the app fetches the token first). The `/mcp` routes are **not** added to the approuter (MCP is for local use only).
 
 ## 6.6 Deployment (commands run by the user)
 
@@ -133,26 +133,4 @@ The existing services are shaped for Fiori (drafts, virtual columns, TM projecti
 - [ ] Work Zone: refresh the HTML5 Apps provider, add **TM Assistant** to the `TM Dispatch` group and the Everyone role, then check it in the site.
 - [ ] Check that the approuter passes SSE through without buffering (the answer should appear gradually). If it does not, the app falls back to `message/send`.
 
-**Exit criteria:** the three-step scenario from 6.4 works in the Work Zone site through **TM Assistant**. It runs as a user with `TM_Dispatcher` and, after removing that role collection and logging in again, as `TM_Carrier_Desk`. The SS user has all three collections (see `CLAUDE.local.md`). No write happens without approval, the exit check of 6.7 passes (MCP from an external client against BTP), and `npm test` is green.
-
-## 6.7 MCP servers on BTP for external clients
-
-Required (the user's decision). External MCP clients reach the two MCP servers in the cloud and log in as the BTP user, so the same roles apply as in the Fiori apps.
-
-**Decided approach:** the clients call the **`-srv` route directly** (`https://<srv-host>/mcp/dispatch-agent`, `/mcp/tender-agent`), not the approuter. The approuter works with session cookies, while MCP clients send `Authorization: Bearer <JWT>`, which CAP validates itself. The token comes from the app's **own XSUAA instance** through authorization code + PKCE, using a fixed client (a service key), because XSUAA offers no dynamic client registration. IAS stays the fallback only if a target client cannot be configured with a fixed client ID.
-
-- [ ] **Checks before building** (they decide the details):
-  - `@cap-js/mcp` 1.5.0 answers an unauthenticated call with a plain JSON 401 (`lib/index.js`), without `WWW-Authenticate: Bearer resource_metadata="…"`. MCP clients need that header (or the well-known URL) to discover the login, so the app adds it (next item).
-  - Does XSUAA serve authorization server metadata that the clients read (`<xsuaa-url>/.well-known/oauth-authorization-server`, or `/.well-known/openid-configuration`)? Does it accept PKCE (`S256`) on the authorization code flow? If metadata is missing, the app serves an RFC 8414 document itself that points at the XSUAA `/oauth/authorize` and `/oauth/token` endpoints.
-  - Which target clients accept a fixed client ID (and secret): Claude Code (`claude mcp add --transport http … --client-id … --client-secret`), claude.ai custom connector (advanced settings: OAuth client ID/secret), VS Code (asks for a client ID when registration fails). Start with **Claude Code**, then claude.ai.
-- [ ] `server.js`, production only: serve `/.well-known/oauth-protected-resource` and `/.well-known/oauth-protected-resource/mcp/<service>` (RFC 9728: `resource` = the MCP URL, `authorization_servers` = the XSUAA `url` from `cds.env.requires.auth.credentials`, `scopes_supported` = the app's scopes). Also add `WWW-Authenticate: Bearer resource_metadata="…"` to 401 responses on `/mcp/*`. Keep it in one small middleware next to the existing prefix rewrite, with no change to the plugin.
-- [ ] `mta.yaml` → XSUAA `oauth2-configuration.redirect-uris`: add the MCP client callbacks next to the approuter one, for example `http://localhost:*/**` (Claude Code / VS Code loopback) and `https://claude.ai/api/mcp/auth_callback`. Check which wildcards XSUAA accepts.
-- [ ] Commands for the user (after the next `cf deploy`, which updates the XSUAA instance):
-  1. `cf create-service-key sap-cap-tm-dispatch-cockpit-auth mcp-client`: creates the fixed client once.
-  2. `cf service-key sap-cap-tm-dispatch-cockpit-auth mcp-client`: shows `clientid`, `clientsecret` and `url`. They go only into the MCP client's own config, never into git.
-  3. `cf app sap-cap-tm-dispatch-cockpit-srv`: shows the `-srv` route for the MCP URLs.
-- [ ] Register both servers in Claude Code with the client ID/secret, log in through the browser as the BTP user, then run `tools/list` and one read tool per server.
-- [ ] **Approval on writes:** `@agent.hitl` pauses only the app's own agents (A2A). An external client calls the action tools directly, so there the client's per-call tool approval is the gate. Document that write tools (`startTender`, `award`, `submitQuote`, …) must not be set to "always allow". If that is not enough, `per_action_tool` can be turned off for writes, or the write actions can be hidden from MCP (to be decided after the first test).
-- [ ] Never expose `/mcp` in the cloud with a technical (client-credentials) user, because that would bypass the per-user roles. The service key is used only for the user login flow.
-
-**Exit check for 6.7:** Claude Code, logged in as a BTP user with only `TM_Dispatcher`, lists and calls the tools of `/mcp/dispatch-agent` and gets a 403 on `/mcp/tender-agent`, and the other way round with only `TM_Carrier_Desk`. A call without a token gets a 401 with `WWW-Authenticate … resource_metadata`. An award made over MCP shows the BTP user in the award audit fields.
+**Exit criteria:** the three-step scenario from 6.4 works in the Work Zone site through **TM Assistant**. It runs as a user with `TM_Dispatcher` and, after removing that role collection and logging in again, as `TM_Carrier_Desk`. The SS user has all three collections (see `CLAUDE.local.md`). No write happens without approval, and `npm test` is green.

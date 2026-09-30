@@ -397,7 +397,7 @@ sap-cap-tm-dispatch-cockpit/
 
 ## 13. Agents and MCP servers (phase 6)
 
-**Why:** dispatchers and carrier desk users should be able to ask "what still needs a carrier on lane X?" or "award the cheapest valid offer" in plain language, and other AI tools should be able to use the same capabilities over MCP.
+**Why:** dispatchers and carrier desk users should be able to ask "what still needs a carrier on lane X?" or "award the cheapest valid offer" in plain language, and AI tools such as Claude Code should be able to use the same capabilities over MCP during local development.
 
 **Constraint:** the BTP trial account has no AI Core or Joule entitlement. The LLM is called **directly on the Anthropic API** with an API key (`cds.requires.llm.kind: "anthropic"`). The key lives in `.env` locally and in a user-provided service `sap-cap-tm-dispatch-cockpit-llm` on BTP, never in git or the MTA.
 
@@ -405,7 +405,7 @@ sap-cap-tm-dispatch-cockpit/
  Browser ─► Approuter (xsuaa) ─► /a2a/dispatch-agent  ─┐        ┌─► Anthropic API
   TM Assistant (UI5, Work Zone)  /a2a/tender-agent    ─┤ agent ──┘   (Claude)
                                                        │  │ MCP tools (in-process)
- MCP clients (XSUAA token) ────► /mcp/dispatch-agent ──┤  ▼
+ MCP clients (local only) ──────► /mcp/dispatch-agent ──┤  ▼
                                  /mcp/tender-agent   ──┴─► DispatchAgentService / TenderAgentService
                                                             └─► DispatchService / TenderService (rules, TM read)
 ```
@@ -415,5 +415,5 @@ sap-cap-tm-dispatch-cockpit/
 - **Same user, same roles:** agents and MCP tools run as the calling user. `@requires`/`@restrict` apply unchanged, and no new scopes are needed.
 - **Every write needs approval** (`@agent.hitl`). TM stays read-only for the agents in every phase.
 - **SAP API Policy:** CAP agents are meant for custom services, not for agentic access to SAP application APIs. The agent services therefore expose no generic TM entity (open decision 4 in the plan).
-- **Chat UI:** the plugin preview (`/a2a/<service>/preview/`) and Claude Code, registered by the MCP plugin's autowire, locally. In the cloud, the UI5 app **TM Assistant** (`app/assistant/`, Work Zone tile `Assistant-chat`) talks A2A through the approuter. External MCP clients (Claude Code, claude.ai, VS Code) reach `/mcp/<service>` in the cloud on the `-srv` route directly, with an XSUAA user token (authorization code + PKCE, fixed client from a service key of the app's XSUAA instance, because XSUAA has no dynamic client registration). The app publishes OAuth protected-resource metadata for discovery. Never with a technical user. Writes over MCP are approved by the client's own tool approval, because `@agent.hitl` covers only the A2A agents.
+- **Chat UI:** the plugin preview (`/a2a/<service>/preview/`) and Claude Code, registered by the MCP plugin's autowire, locally. In the cloud, the UI5 app **TM Assistant** (`app/assistant/`, Work Zone tile `Assistant-chat`) talks A2A through the approuter. External MCP clients against the cloud are out of scope: `/mcp` is not routed through the approuter and no login flow is set up for MCP clients. Locally, writes over MCP are approved by the client's own tool approval, because `@agent.hitl` covers only the A2A agents.
 - **Cost control:** `cds.agents.quotas` per user and hour, Haiku in development, `mock` in tests.

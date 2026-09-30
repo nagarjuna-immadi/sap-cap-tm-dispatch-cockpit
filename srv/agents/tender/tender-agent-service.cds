@@ -90,7 +90,7 @@ service TenderAgentService {
   // Each delegates to the TenderService action on OpenInvitations, which checks
   // award-rules.js and changes only the quote fields and the status of the offer.
   // @agent.hitl pauses the agent's task until the user approves (not for external MCP
-  // clients, development plan 6.7). Both return the invitation as it is afterwards.
+  // clients such as Claude Code). Both return the invitation as it is afterwards.
 
   /**
    * Submits the carrier's quote for an open invitation: price, currency and transit time.
