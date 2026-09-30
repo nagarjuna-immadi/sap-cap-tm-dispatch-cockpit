@@ -119,7 +119,10 @@
     },
     "mcp": {
       "prefix": true,
-      "per_action_tool": true
+      "per_action_tool": true,
+      "autowire": {
+        "user": "nag"
+      }
     },
     "agents": {
       "quotas": {
