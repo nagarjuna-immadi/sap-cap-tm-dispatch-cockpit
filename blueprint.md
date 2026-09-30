@@ -411,7 +411,7 @@ sap-cap-tm-dispatch-cockpit/
 ```
 
 - **Plugins:** `@cap-js/mcp` serves a service as an MCP server (`@protocol: ['mcp']`, path `/mcp/<service>`). `@cap-js/agents` turns it into an agent (`@agent`, A2A at `/a2a/<service>`, conversations persisted in the app DB, `@agent.hitl` for approvals).
-- **Dedicated agent services** (`srv/agents/`), not the Fiori services: `DispatchAgentService` (`Dispatcher`) and `TenderAgentService` (`CarrierDesk`). They expose read-only local projections, a few functions that return a compact freight order context, and the tender actions. Everything delegates to `DispatchService` / `TenderService`, so the rules stay in `award-rules.js`.
+- **Dedicated agent services** (one folder per agent, `srv/agents/<name>/`, with the service, its handler and the persona; loaded through `srv/agents.cds`), not the Fiori services: `DispatchAgentService` (`Dispatcher`) and `TenderAgentService` (`CarrierDesk`). They expose read-only local projections, a few functions that return a compact freight order context, and the tender actions. Everything delegates to `DispatchService` / `TenderService`, so the rules stay in `award-rules.js`.
 - **Same user, same roles:** agents and MCP tools run as the calling user. `@requires`/`@restrict` apply unchanged, and no new scopes are needed.
 - **Every write needs approval** (`@agent.hitl`). TM stays read-only for the agents in every phase.
 - **SAP API Policy:** CAP agents are meant for custom services, not for agentic access to SAP application APIs. The agent services therefore expose no generic TM entity (open decision 4 in the plan).
