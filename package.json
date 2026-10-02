@@ -26,7 +26,9 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "watch-dispatch-cockpit": "cds watch --open tm.dispatch.dispatchcockpit/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-tender-desk": "cds watch --open tm.dispatch.tenderdesk/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-assistant": "cds watch --open tm.dispatch.assistant/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-assistant": "cds watch --open tm.dispatch.assistant/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "build": "mbt build",
+    "deploy": "cf deploy mta_archives/sap-cap-tm-dispatch-cockpit_${npm_package_version}.mtar --retries 1"
   },
   "private": true,
   "cds": {
