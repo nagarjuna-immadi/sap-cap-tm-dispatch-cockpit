@@ -1,17 +1,14 @@
-// Carrier desk's agent service (blueprint §13, development plan 6.3).
+// Carrier desk's MCP server (blueprint §13, development plan 6.3).
 //
-// Served only as an A2A agent (/a2a/tender-agent), never as OData or MCP. As narrow as
-// TenderService: open invitations with a small, fixed freight order context, and the
-// carrier's own answer. No award fields (awarded carrier, price, user, time), no other
-// carrier's offer, no entity for the query tool. Everything delegates to TenderService,
-// so the rules stay in award-rules.js. The MCP server is a separate copy for teaching
-// purposes: TenderMcpService in srv/mcp-servers/tender-mcp-server.cds.
+// A standalone CAP service served only over MCP, at /mcp/tender-mcp-server. For teaching
+// purposes it is a deliberate copy of TenderAgentService (srv/agents/tender/), with its own
+// handler in tender-mcp-server.js; dispatch-mcp-server.cds explains the difference
+// between the MCP server and the agent. Keep both copies in step when a tool changes.
 //
-// The notes in dispatch-agent-service.cds apply here too: @agent is the protocol
-// shorthand, the tools are defined here for @agent.hitl,
-// @path has no leading slash, @agent.connect 'none' keeps the dispatch agent's tools out,
-// the persona is found because AGENTS.md is next to this file, and doc comments (/** … */)
-// are what the LLM reads, while line comments like this one are for developers.
+// As narrow as TenderService: open invitations with a small, fixed freight order context,
+// and the carrier's own answer. No award fields (awarded carrier, price, user, time), no
+// other carrier's offer, no entity for the query tool. Everything delegates to
+// TenderService, so the rules stay in award-rules.js.
 
 /**
  * Carrier desk: enter the quotes that carriers send by mail or phone for the tender
@@ -20,16 +17,15 @@
  * Freight orders come from SAP Transportation Management and are identified by their
  * freight order ID; the invitations and quotes are kept in this app.
  */
-@path: 'tender-agent'
 @requires: 'CarrierDesk'
-@agent
-@agent.connect: 'none'
-service TenderAgentService {
+@mcp: 'tender-mcp-server'
+@mcp.instructions: 'Carrier desk for freight tenders: enter or decline quotes for the invitations carriers received. Use openInvitations to find the open invitations (optionally for one carrier ID) and invitationDetails for one invitation; identify an invitation by its offer ID and name its freight order ID and carrier. Read deadlines and statuses with the tools and never guess them. All timestamps are in UTC. submitQuote and decline change data: before calling one, state the carrier, the freight order ID, the price with its currency and the transit time, and call it only when the user gave you these values. Warn when less than 24 hours are left. When an action is rejected, report the message as it is, because it names the rule that was not met.'
+service TenderMcpService {
 
   // --- invitations (functions) ----------------------------------------------------------
   // Read through TenderService.OpenInvitations, which adds lane and dates from TM (one call
   // per page) and the countdown. No parameter reaches TM: carrierId and offerId filter the
-  // local offers only (tender-agent-service.js).
+  // local offers only (tender-mcp-server.js).
 
   type Invitation {
     offerId             : UUID;
@@ -90,8 +86,8 @@ service TenderAgentService {
   // --- changes (actions) ----------------------------------------------------------------
   // Each delegates to the TenderService action on OpenInvitations, which checks
   // award-rules.js and changes only the quote fields and the status of the offer.
-  // @agent.hitl pauses the agent's task until the user approves (not for external MCP
-  // clients such as Claude Code). Both return the invitation as it is afterwards.
+  // No @agent.hitl: the MCP client asks its user before it calls a tool. Both return the
+  // invitation as it is afterwards.
 
   /**
    * Submits the carrier's quote for an open invitation: price, currency and transit time.
@@ -99,7 +95,6 @@ service TenderAgentService {
    * deadline has not passed; a quote cannot be changed afterwards. Changes data: call it
    * only with the values the user gave you.
    */
-  @agent.hitl
   action submitQuote(
     /** Offer ID of the invitation, as offerId from openInvitations. */
     offerId      : UUID           @mandatory,
@@ -118,7 +113,6 @@ service TenderAgentService {
    * the invitation is waiting for a quote and its round is open. Changes data and cannot
    * be undone: call it only when the user asked to decline.
    */
-  @agent.hitl
   action decline(
     /** Offer ID of the invitation, as offerId from openInvitations. */
     offerId : UUID @mandatory,

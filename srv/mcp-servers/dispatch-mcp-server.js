@@ -1,8 +1,10 @@
 /**
- * DispatchAgentService handlers (blueprint §13, development plan 6.2).
+ * DispatchMcpService handlers (blueprint §13, development plan 6.2).
  *
- * The service is the tool surface of the dispatch agent (the MCP server is a separate
- * copy, srv/mcp-servers/dispatch-mcp-server.js). It holds
+ * A deliberate copy of the DispatchAgentService handlers (srv/agents/dispatch/), kept
+ * separate for teaching purposes; see dispatch-mcp-server.cds. Keep both in step.
+ *
+ * The service is the tool surface of the dispatch MCP server. It holds
  * no rules of its own: functions and actions delegate to DispatchService in the caller's
  * cds.context, so the user and roles carry over and award-rules.js stays the only place
  * where a tender or an award is checked.
@@ -17,9 +19,9 @@
  *   not the single read, which would create the dispatch of a freight order.
  */
 import cds from '@sap/cds'
-import { cached } from '../../lib/cache.js'
-import * as rules from '../../lib/award-rules.js'
-import { resolveMessages } from '../../lib/agent-errors.js'
+import { cached } from '../lib/cache.js'
+import * as rules from '../lib/award-rules.js'
+import { resolveMessages } from '../lib/agent-errors.js'
 
 const { SELECT } = cds.ql
 
@@ -66,7 +68,7 @@ const laneMatcher = lane => {
   return r => contains(r.sourceLocation, from) && contains(r.destinationLocation, to)
 }
 
-/** The fixed freight order context the agent gets: ID, lane, dates and tender state. */
+/** The fixed freight order context the MCP client gets: ID, lane, dates and tender state. */
 const compact = r => ({
   freightOrderId: r.TransportationOrder,
   sourceLocation: r.sourceLocation,
@@ -89,7 +91,7 @@ const byPriceAndTransit = (a, b) =>
   || (a.transitHours ?? Infinity) - (b.transitHours ?? Infinity)
   || (a.carrierName ?? '').localeCompare(b.carrierName ?? '')
 
-export default class DispatchAgentService extends cds.ApplicationService {
+export default class DispatchMcpService extends cds.ApplicationService {
   async init() {
     // not `this.dispatch`: that is the method every service dispatches its requests with
     this.dispatchService = await cds.connect.to('DispatchService')
@@ -104,7 +106,7 @@ export default class DispatchAgentService extends cds.ApplicationService {
     this.on('award', req => this.onAward(req))
     this.on('reportException', req => this.onReportException(req))
 
-    // validation errors carry only a code; MCP and A2A need the text (agent-errors.js)
+    // validation errors carry only a code; MCP needs the text (agent-errors.js)
     this.on('error', resolveMessages)
 
     return super.init()

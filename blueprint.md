@@ -404,14 +404,16 @@ sap-cap-tm-dispatch-cockpit/
 ```
  Browser ─► Approuter (xsuaa) ─► /a2a/dispatch-agent  ─┐        ┌─► Anthropic API
   TM Assistant (UI5, Work Zone)  /a2a/tender-agent    ─┤ agent ──┘   (Claude)
-                                                       │  │ MCP tools (in-process)
- MCP clients (local only) ──────► /mcp/dispatch-agent ──┤  ▼
-                                 /mcp/tender-agent   ──┴─► DispatchAgentService / TenderAgentService
-                                                            └─► DispatchService / TenderService (rules, TM read)
+                                                       │  │ own tools (in-process)
+                                                       │  ▼
+                                                       └─► DispatchAgentService / TenderAgentService ─┐
+ MCP clients (local only) ► /mcp/dispatch-mcp-server ────► DispatchMcpService / TenderMcpService ──────┤
+                           /mcp/tender-mcp-server                                                     ▼
+                                                     DispatchService / TenderService (rules, TM read)
 ```
 
-- **Plugins:** `@cap-js/mcp` serves a service as an MCP server (`@protocol: ['mcp']`, path `/mcp/<service>`). `@cap-js/agents` turns it into an agent (`@agent`, A2A at `/a2a/<service>`, conversations persisted in the app DB, `@agent.hitl` for approvals).
-- **Dedicated agent services** (one folder per agent, `srv/agents/<name>/`, with the service, its handler and the persona; loaded through `srv/agents.cds`), not the Fiori services: `DispatchAgentService` (`Dispatcher`) and `TenderAgentService` (`CarrierDesk`). They expose read-only local projections, a few functions that return a compact freight order context, and the tender actions. Everything delegates to `DispatchService` / `TenderService`, so the rules stay in `award-rules.js`.
+- **Plugins:** `@cap-js/mcp` serves a service as an MCP server (`@mcp`, path `/mcp/<service>`). `@cap-js/agents` turns it into an agent (`@agent`, A2A at `/a2a/<service>`, conversations persisted in the app DB, `@agent.hitl` for approvals).
+- **Dedicated agent services** (one folder per agent, `srv/agents/<name>/`, with the service, its tools, its handler and the persona; loaded through `srv/agents.cds`), not the Fiori services. The MCP servers are **separate services** in `srv/mcp-servers/<name>-mcp-server.cds` / `.js` (loaded through `srv/mcp-servers.cds`): `DispatchMcpService` and `TenderMcpService`, served only over MCP (`@mcp: '<name>-mcp-server'`, same `@requires`). For demos and teaching they are **deliberate copies** of the agent services, with the same tools and their own handlers, so that the MCP server and the agent can be read side by side. The copies have `@mcp.instructions` and no `@agent.*` annotations, and both copies must be kept in step when a tool changes. The agents keep their tools on their own service, because `@agent.hitl` only pauses on the agent service's own actions. The agent services are `DispatchAgentService` (`Dispatcher`) and `TenderAgentService` (`CarrierDesk`). They expose read-only local projections, a few functions that return a compact freight order context, and the tender actions. Everything delegates to `DispatchService` / `TenderService`, so the rules stay in `award-rules.js`.
 - **Same user, same roles:** agents and MCP tools run as the calling user. `@requires`/`@restrict` apply unchanged, and no new scopes are needed.
 - **Every write needs approval** (`@agent.hitl`). TM stays read-only for the agents in every phase.
 - **SAP API Policy:** CAP agents are meant for custom services, not for agentic access to SAP application APIs. The agent services therefore expose no generic TM entity (open decision 4 in the plan).

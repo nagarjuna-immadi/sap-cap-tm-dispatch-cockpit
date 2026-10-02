@@ -1,8 +1,10 @@
 /**
- * TenderAgentService handlers (blueprint §13, development plan 6.3).
+ * TenderMcpService handlers (blueprint §13, development plan 6.3).
  *
- * The service is the tool surface of the tender agent (the MCP server is a separate
- * copy, srv/mcp-servers/tender-mcp-server.js). It holds no
+ * A deliberate copy of the TenderAgentService handlers (srv/agents/tender/), kept separate
+ * for teaching purposes; see tender-mcp-server.cds. Keep both in step.
+ *
+ * The service is the tool surface of the tender MCP server. It holds no
  * rules of its own: functions and actions delegate to TenderService in the caller's
  * cds.context, so the user and roles carry over and award-rules.js stays the only place
  * where a quote or a decline is checked.
@@ -14,8 +16,8 @@
  *   from the offer itself: OpenInvitations has no price, and no other offer is read.
  */
 import cds from '@sap/cds'
-import * as rules from '../../lib/award-rules.js'
-import { resolveMessages } from '../../lib/agent-errors.js'
+import * as rules from '../lib/award-rules.js'
+import { resolveMessages } from '../lib/agent-errors.js'
 
 const { SELECT } = cds.ql
 
@@ -24,7 +26,7 @@ const DB = {
   Carriers: 'tm.dispatch.Carriers',
 }
 
-/** The fixed invitation context the agent gets: offer, carrier, freight order, deadline. */
+/** The fixed invitation context the MCP client gets: offer, carrier, freight order, deadline. */
 const compact = (r, now) => ({
   offerId: r.ID,
   freightOrderId: r.freightOrderId,
@@ -41,7 +43,7 @@ const compact = (r, now) => ({
   deliveryDateTime: r.deliveryDateTime ?? null,
 })
 
-export default class TenderAgentService extends cds.ApplicationService {
+export default class TenderMcpService extends cds.ApplicationService {
   async init() {
     this.tenderService = await cds.connect.to('TenderService')
 
@@ -51,7 +53,7 @@ export default class TenderAgentService extends cds.ApplicationService {
     this.on('submitQuote', req => this.onSubmitQuote(req))
     this.on('decline', req => this.onDecline(req))
 
-    // validation errors carry only a code; MCP and A2A need the text (agent-errors.js)
+    // validation errors carry only a code; MCP needs the text (agent-errors.js)
     this.on('error', resolveMessages)
 
     return super.init()

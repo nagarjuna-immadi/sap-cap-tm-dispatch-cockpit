@@ -1,34 +1,34 @@
-// Dispatcher's agent service (blueprint §13, development plan 6.2).
+// Dispatcher's MCP server (blueprint §13, development plan 6.2).
 //
-// Served only as an A2A agent (/a2a/dispatch-agent), never as OData or MCP. Deliberately
-// narrow: local tender data plus a small, fixed freight order context, and no generic TM
-// entity (SAP API Policy §2.2.2). Everything delegates to DispatchService, so the rules
-// stay in award-rules.js and are not implemented twice.
+// A standalone CAP service served only over MCP, at /mcp/dispatch-mcp-server, for MCP
+// clients such as Claude Code (registered by the @cap-js/mcp autowire on cds watch).
 //
-// For teaching purposes the MCP server is a separate copy of this service:
-// DispatchMcpService in srv/mcp-servers/dispatch-mcp-server.cds, which also explains the
-// difference between the two. Keep both copies in step when a tool changes.
+// For teaching purposes this is a deliberate copy of DispatchAgentService
+// (srv/agents/dispatch/): the same entities, types, functions and actions, with their own
+// handler in dispatch-mcp-server.js. Normally one service would carry both protocols; here
+// the two files sit side by side so that the difference is easy to see:
 //
-// - @agent is the protocol shorthand. @path has no leading slash, so CAP prefixes it with
-//   /a2a/.
-// - The tools are defined on this service itself: @agent.hitl only pauses on actions of
-//   the agent service, and a tool from a connected MCP service would bypass it.
-// - @agent.connect 'none': the agent uses this service's tools only. The plugin default
-//   ('auto') would add every other MCP or agent service, such as the tender agent or the
-//   MCP servers.
-// - The persona (AGENTS.md and skills/) is in this folder. The plugin finds it because
-//   AGENTS.md is next to this file, so no @agent.directory is needed. If the two are
-//   separated, the plugin builds the agent without the persona and reports no error.
-// - Doc comments (/** … */) are what the LLM reads: the one on the service goes into the
-//   agent's system prompt, the ones on elements, actions and parameters become the tool
-//   descriptions. So every element and action gets one; notes for developers go in
-//   line comments like this one.
+//   MCP server (this file)                    Agent (srv/agents/dispatch/)
+//   - @mcp: exposes tools to an MCP client    - @agent: an A2A endpoint with its own LLM
+//   - the client's LLM decides what to call   - the persona (AGENTS.md, skills/) decides
+//   - @mcp.instructions guides the client     - the persona and doc comments guide the LLM
+//   - no @agent.hitl: the client asks its     - @agent.hitl pauses the task until the user
+//     user before a tool call                   approves a write
+//
+// Keep both copies in step when a tool changes. Everything delegates to DispatchService,
+// so the rules stay in award-rules.js and are not implemented twice.
+//
+// - @mcp is the protocol shorthand, and its value is the path: without a leading slash
+//   CAP prefixes it with /mcp/. No @protocol and no @path are needed.
+// - Doc comments (/** … */) are what the client's LLM reads: the one on the service is the
+//   MCP server description, the ones on elements, actions and parameters become the tool
+//   descriptions. Notes for developers go in line comments like this one.
 // - The entities are what the query tool reads: projections on the local DB only, with
 //   explicit columns. Code list associations are flattened to their codes (the code
 //   lists are not exposed, so the doc comments name the values), and freightOrderId is
 //   on every entity, so a question about one freight order needs no join.
 
-using { tm.dispatch as db } from '../../../db/schema';
+using { tm.dispatch as db } from '../../db/schema';
 
 /**
  * Freight tendering for dispatchers: find the freight orders that still need a carrier,
@@ -37,11 +37,10 @@ using { tm.dispatch as db } from '../../../db/schema';
  * Transportation Management and are read-only; they are identified by their freight
  * order ID. Tender rounds, offers, awards and exceptions are kept in this app.
  */
-@path: 'dispatch-agent'
 @requires: 'Dispatcher'
-@agent
-@agent.connect: 'none'
-service DispatchAgentService {
+@mcp: 'dispatch-mcp-server'
+@mcp.instructions: 'Freight tendering for a dispatcher. Use the describe tool first to see the entities, functions and actions with their parameters, then the query tool to read data and the function and action tools for everything else. Always identify a freight order by its freight order ID. Read prices, deadlines and statuses with the tools and never guess them. All timestamps are in UTC. Actions change data: before calling one, state the freight order ID and the parameters you will use, and call it only when the user asked for that change. When an action is rejected, report the message as it is, because it names the rule that was not met.'
+service DispatchMcpService {
 
   // --- local, read-only (query tool) ----------------------------------------------------
 
@@ -196,7 +195,7 @@ service DispatchAgentService {
   // --- freight order context (functions) ------------------------------------------------
   // The only place TM data comes in: a small, fixed set of fields (ID, lane, dates), read
   // through DispatchService. No parameter reaches the TM $filter: status is resolved
-  // locally and lane is matched on the rows TM returned (dispatch-agent-service.js).
+  // locally and lane is matched on the rows TM returned (dispatch-mcp-server.js).
 
   type FreightOrderRow {
     freightOrderId      : String(20);
@@ -306,17 +305,16 @@ service DispatchAgentService {
 
   // --- changes (actions) ----------------------------------------------------------------
   // Each delegates to the bound DispatchService action, which checks award-rules.js and
-  // writes to the local entities only; TM stays read-only. @agent.hitl pauses the agent's
-  // task (input-required) until the user approves the call. It does not cover external
-  // MCP clients such as Claude Code, which call the tool directly. Every action returns
-  // the freight order summary, so the result of the change needs no second call.
+  // writes to the local entities only; TM stays read-only. There is no @agent.hitl: an MCP
+  // server has no task to pause. The MCP client (e.g. Claude Code) asks its user before it
+  // calls a tool, so the approval happens there. Every action returns the freight order
+  // summary, so the result of the change needs no second call.
 
   /**
    * Starts a new tender round on a freight order: invites the given carriers to quote
    * until the deadline. Not possible while another round of the freight order is open, or
    * once it is awarded. Changes data: call it only when the user asked to start a tender.
    */
-  @agent.hitl
   action startTender(
     /** Freight order ID, e.g. 6100000002. */
     freightOrderId : String(20) @mandatory,
@@ -333,7 +331,6 @@ service DispatchAgentService {
    * invitations and sets the dispatch status to FAILED. The reason is kept as a note.
    * Changes data: call it only when the user asked to cancel the tender.
    */
-  @agent.hitl
   action cancelTender(
     /** Freight order ID, e.g. 6100000002. */
     freightOrderId : String(20)   @mandatory,
@@ -346,7 +343,6 @@ service DispatchAgentService {
    * were not answered expire, and a new round can be started afterwards. Changes data:
    * call it only when the user asked to close the round.
    */
-  @agent.hitl
   action closeRound(
     /** Freight order ID, e.g. 6100000002. */
     freightOrderId : String(20) @mandatory
@@ -359,7 +355,6 @@ service DispatchAgentService {
    * passed. Check with compareOffers first. Changes data and cannot be undone: call it
    * only when the user asked to award this offer.
    */
-  @agent.hitl
   action award(
     /** ID of the offer to award, as offerId from compareOffers or freightOrderSummary. */
     offerId : UUID @mandatory
@@ -370,7 +365,6 @@ service DispatchAgentService {
    * damage. The event time is the time of the report. Changes data: call it only when the
    * user asked to report the event.
    */
-  @agent.hitl
   action reportException(
     /** Freight order ID, e.g. 6100000002. */
     freightOrderId : String(20) @mandatory,
